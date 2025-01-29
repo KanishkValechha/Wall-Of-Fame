@@ -20,7 +20,7 @@ export const achievements: Achievement[] = [
     category: 'Academic Excellence',
     title: 'Outstanding Research in AI Ethics',
     description: 'Led groundbreaking research in artificial intelligence ethics, publishing in top-tier journals and presenting at international conferences.',
-    position: { top: '10%', left: '20%', rotate: '-3deg' }
+    position: { top: '30%', left: '25%', rotate: '-5deg' }
   },
   {
     id: '2',
@@ -29,7 +29,7 @@ export const achievements: Achievement[] = [
     category: 'Innovation & Technology',
     title: 'Tech Innovation Award',
     description: 'Developed a revolutionary sustainable energy solution that received international recognition and multiple patent approvals.',
-    position: { top: '15%', left: '50%', rotate: '2deg' }
+    position: { top: '45%', left: '35%', rotate: '3deg' }
   },
   {
     id: '3',
@@ -38,7 +38,7 @@ export const achievements: Achievement[] = [
     category: 'Leadership & Service',
     title: 'Community Leadership Excellence',
     description: 'Founded and led a successful nonprofit organization focusing on youth education in underserved communities.',
-    position: { top: '5%', left: '75%', rotate: '-2deg' }
+    position: { top: '20%', left: '75%', rotate: '-2deg' }
   },
   {
     id: '4',

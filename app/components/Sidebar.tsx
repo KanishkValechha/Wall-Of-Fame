@@ -38,7 +38,16 @@ export default function Sidebar({
       >
         <div className="relative h-full p-6">
           <div className="space-y-3">
-            <h2 className="text-xl font-semibold mb-6">Categories</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Categories</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+              >
+                <ChevronLeft />
+              </Button>
+            </div>
             {categories.map((category) => (
               <Button
                 key={category}
@@ -53,19 +62,20 @@ export default function Sidebar({
               </Button>
             ))}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "absolute -right-14 top-2", // Changed from -right-12 to -right-14
-              isCollapsed ? "text-black" : "text-white"
-            )}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            {isCollapsed ? <Menu /> : <ChevronLeft />}
-          </Button>
         </div>
       </motion.div>
+      
+      {/* Hamburger menu button - only shown when sidebar is collapsed */}
+      {isCollapsed && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-4 top-2 text-black"
+          onClick={() => setIsCollapsed(false)}
+        >
+          <Menu />
+        </Button>
+      )}
     </div>
   );
 }
