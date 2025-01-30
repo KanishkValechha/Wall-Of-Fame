@@ -26,7 +26,7 @@ export default function AchievementModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/40"
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm"
             onClick={onClose}
           />
           <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -38,11 +38,11 @@ export default function AchievementModal({
                 duration: 0.3,
                 ease: "easeOut"
               }}
-              className="relative w-full bg-white rounded-lg overflow-hidden max-h-[90vh] md:max-w-4xl shadow-xl"
+              className="relative w-full bg-card rounded-lg overflow-hidden max-h-[90vh] md:max-w-4xl shadow-xl"
             >
               <button
                 onClick={onClose}
-                className="absolute right-4 top-4 z-50 p-2 rounded-full bg-white/80 hover:bg-white shadow-md"
+                className="absolute right-4 top-4 z-50 p-2 rounded-full bg-background/50 hover:bg-background/80 text-primary hover:text-primary/80 transition-colors"
               >
                 ✕
               </button>
@@ -72,13 +72,13 @@ export default function AchievementModal({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 }}
-                  className="p-6 md:p-8 bg-white"
+                  className="p-6 md:p-8 bg-card"
                 >
                   <div className="space-y-4">
                     <div>
                       <motion.h2 
                         layoutId={`name-${achievement.id}`}
-                        className="text-2xl md:text-3xl font-bold mb-2"
+                        className="text-2xl md:text-3xl font-bold mb-2 text-primary"
                       >
                         {achievement.name}
                       </motion.h2>
@@ -97,10 +97,10 @@ export default function AchievementModal({
                       transition={{ delay: 0.2 }}
                       className="space-y-3"
                     >
-                      <h3 className="text-lg md:text-xl font-semibold">
+                      <h3 className="text-lg md:text-xl font-semibold text-primary">
                         {achievement.title}
                       </h3>
-                      <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+                      <p className="text-foreground/80 text-sm md:text-base leading-relaxed">
                         {achievement.description}
                       </p>
                     </motion.div>

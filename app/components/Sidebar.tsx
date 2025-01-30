@@ -21,29 +21,28 @@ export default function Sidebar({
 
   return (
     <div className="fixed inset-y-0 left-0 z-50">
-      {/* Separate overlay with blur */}
       <motion.div
         initial={false}
-        animate={{ opacity: isCollapsed ? 0 : 0.5 }}
+        animate={{ opacity: isCollapsed ? 0 : 0.7 }}
         className="fixed inset-0 bg-black/20 backdrop-blur-sm z-10"
         onClick={() => setIsCollapsed(true)}
         style={{ display: isCollapsed ? 'none' : 'block' }}
       />
-      {/* Sidebar content */}
       <motion.div
         initial={false}
         animate={{ x: isCollapsed ? -320 : 0 }}
         transition={{ type: "spring", damping: 20 }}
-        className="absolute top-0 left-0 h-full w-[300px] bg-white shadow-lg z-20"
+        className="absolute top-0 left-0 h-full w-[300px] bg-white shadow-lg z-20 border-r border-black/10"
       >
         <div className="relative h-full p-6">
-          <div className="space-y-3">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Categories</h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-display font-semibold text-primary tracking-wide">Categories</h2>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsCollapsed(!isCollapsed)}
+                className="text-primary/80 hover:text-primary"
               >
                 <ChevronLeft />
               </Button>
@@ -51,8 +50,13 @@ export default function Sidebar({
             {categories.map((category) => (
               <Button
                 key={category}
-                variant={selectedCategory === category ? "default" : "ghost"}
-                className="w-full justify-start text-left"
+                variant={selectedCategory === category ? "secondary" : "ghost"}
+                className={cn(
+                  "w-full justify-start text-left font-sidebar text-base",
+                  selectedCategory === category 
+                    ? "bg-black text-white hover:bg-black/90" 
+                    : "text-black/70 hover:text-black hover:bg-black/5"
+                )}
                 onClick={() => {
                   onSelectCategory(category);
                   setIsCollapsed(true);
@@ -65,12 +69,11 @@ export default function Sidebar({
         </div>
       </motion.div>
       
-      {/* Hamburger menu button - only shown when sidebar is collapsed */}
       {isCollapsed && (
         <Button
           variant="ghost"
           size="icon"
-          className="absolute left-4 top-2 text-black"
+          className="absolute left-4 top-4 text-black hover:text-black/70"
           onClick={() => setIsCollapsed(false)}
         >
           <Menu />

@@ -13,41 +13,37 @@ export default function PolaroidCard({ achievement, onClick }: PolaroidCardProps
   return (
     <motion.div
       whileHover={{ 
-        scale: 1.05, 
-        rotate: 0, 
+        scale: 1.05,
+        rotate: 0,
         zIndex: 50,
-        boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
       }}
-      className="bg-white p-2 sm:p-3 shadow-md hover:shadow-xl cursor-pointer transition-all duration-300 w-[130px] sm:w-[140px] md:w-[160px] flex flex-col"
+      className="card-shine bg-white p-4 cursor-pointer transition-all duration-300 w-[140px] sm:w-[160px] md:w-[180px] flex flex-col rounded-sm"
       onClick={onClick}
-      style={{ transformOrigin: 'center center' }}
+      style={{ 
+        transformOrigin: 'center center',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+        border: '1px solid rgba(0, 0, 0, 0.1)'
+      }}
     >
       <motion.div 
-        className="relative w-full aspect-square mb-3"
+        className="relative w-full aspect-square mb-5 overflow-hidden"
         layoutId={`image-container-${achievement.id}`}
-        transition={{ 
-          type: "spring",
-          bounce: 0.2,
-          duration: 0.6
-        }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
       >
+        <div className="absolute inset-0 border border-black/10 z-10" />
         <Image
           src={achievement.image}
           alt={achievement.name}
           fill
           sizes="180px"
-          className="object-cover rounded"
+          className="object-cover"
           priority
         />
       </motion.div>
       <motion.h3 
-        className="text-xs sm:text-sm font-handwriting text-center truncate px-1"
+        className="text-base sm:text-lg font-handwriting text-center truncate px-1 text-black/80"
         layoutId={`name-${achievement.id}`}
-        transition={{ 
-          type: "spring",
-          bounce: 0.2,
-          duration: 0.6
-        }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
       >
         {achievement.name}
       </motion.h3>
