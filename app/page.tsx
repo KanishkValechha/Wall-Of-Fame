@@ -15,7 +15,8 @@ import { Plus } from "lucide-react";
 export default function Home() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [selectedAchievement, setSelectedAchievement] =
+    useState<Achievement | null>(null);
   const [windowWidth, setWindowWidth] = useState(0);
   const [showContent, setShowContent] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
@@ -29,8 +30,8 @@ export default function Home() {
       setWindowWidth(window.innerWidth);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -45,22 +46,22 @@ export default function Home() {
   const calculatePosition = (index: number, total: number) => {
     const isMobile = windowWidth < 768;
     const isTablet = windowWidth >= 768 && windowWidth < 1024;
-    
+
     if (isMobile) {
       return null;
     }
-    
+
     const itemsPerRow = isTablet ? 3 : 5;
     const row = Math.floor(index / itemsPerRow);
     const col = index % itemsPerRow;
-    
-    const baseLeft = isTablet ?
-      (col * 33.33) + 16.66 : // 3 columns on tablet
-      (col * 20) + 10; // 5 columns on desktop
-    
+
+    const baseLeft = isTablet
+      ? col * 33.33 + 16.66 // 3 columns on tablet
+      : col * 20 + 10; // 5 columns on desktop
+
     // Increase the vertical spacing by adjusting the multiplier (from 25 to 30)
-    const baseTop = (row * 30) + 15;
-    
+    const baseTop = row * 30 + 15;
+
     // Reduce the random movement range to prevent overlap
     const randomX = (Math.random() - 0.5) * 2;
     const randomY = (Math.random() - 0.5) * 2;
@@ -69,12 +70,14 @@ export default function Home() {
     return {
       top: `${baseTop + randomY}%`,
       left: `${baseLeft + randomX}%`,
-      rotate: `${rotate}deg`
+      rotate: `${rotate}deg`,
     };
   };
 
   const filteredAchievements = achievements.filter(
-    (achievement) => selectedCategory === "Overall TOP 10" || achievement.category === selectedCategory
+    (achievement) =>
+      selectedCategory === "Overall TOP 10" ||
+      achievement.category === selectedCategory
   );
 
   return (
@@ -85,10 +88,12 @@ export default function Home() {
           categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
+          onSubmit={() => router.push("/submit")}
         />
+        {/* Add back the submit button with hidden-sm for mobile */}
         <Button
-          onClick={() => router.push('/submit')}
-          className="fixed top-4 right-4 z-50 bg-black text-white hover:bg-black/90"
+          onClick={() => router.push("/submit")}
+          className="fixed top-8 right-4 z-50 bg-black text-white hover:bg-black/90 hidden sm:flex"
         >
           <Plus className="w-4 h-4 mr-2" />
           Submit Achievement
@@ -107,58 +112,21 @@ export default function Home() {
             </div>
 
             {/* Content section with proper top padding */}
-            <div className="relative w-full min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] max-w-7xl mx-auto px-2 sm:px-4 pt-[140px] sm:pt-[160px]">
-              {/* Mobile layout */}
-              <div className="sm:hidden grid grid-cols-2 gap-4 mb-20">
+            <div className="relative w-full min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] max-w-7xl mx-auto px-4 sm:px-4 pt-[140px] sm:pt-[160px]">
+              {/* Mobile layout - Updated grid positioning */}
+              <div className="sm:hidden grid grid-cols-2 gap-4 mb-20 justify-items-center">
                 <AnimatePresence mode="sync">
-                  {showContent && filteredAchievements.map((achievement, index) => (
-                    <motion.div
-                      key={achievement.id}
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{
-                        duration: 0.6,
-                        delay: index * 0.1,
-                        ease: [0.21, 1.11, 0.81, 0.99],
-                      }}
-                    >
-                      <PolaroidCard
-                        achievement={achievement}
-                        onClick={() => setSelectedAchievement(achievement)}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-
-              {/* Desktop layout */}
-              <div className="hidden sm:block relative w-full min-h-[calc(100vh-140px)]">
-                <AnimatePresence mode="sync">
-                  {showContent && filteredAchievements.map((achievement, index) => {
-                    const position = calculatePosition(index, filteredAchievements.length);
-                    return position ? (
+                  {showContent &&
+                    filteredAchievements.map((achievement, index) => (
                       <motion.div
                         key={achievement.id}
-                        initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                        animate={{ 
-                          opacity: 1, 
-                          scale: 1,
-                          y: "-50%",
-                          x: "-50%",
-                        }}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8 }}
                         transition={{
                           duration: 0.6,
                           delay: index * 0.1,
                           ease: [0.21, 1.11, 0.81, 0.99],
-                        }}
-                        className="absolute transform"
-                        style={{
-                          top: position.top,
-                          left: position.left,
-                          rotate: position.rotate,
-                          zIndex: 10
                         }}
                       >
                         <PolaroidCard
@@ -166,8 +134,50 @@ export default function Home() {
                           onClick={() => setSelectedAchievement(achievement)}
                         />
                       </motion.div>
-                    ) : null;
-                  })}
+                    ))}
+                </AnimatePresence>
+              </div>
+
+              {/* Desktop layout */}
+              <div className="hidden sm:block relative w-full min-h-[calc(100vh-140px)]">
+                <AnimatePresence mode="sync">
+                  {showContent &&
+                    filteredAchievements.map((achievement, index) => {
+                      const position = calculatePosition(
+                        index,
+                        filteredAchievements.length
+                      );
+                      return position ? (
+                        <motion.div
+                          key={achievement.id}
+                          initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                          animate={{
+                            opacity: 1,
+                            scale: 1,
+                            y: "-50%",
+                            x: "-50%",
+                          }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          transition={{
+                            duration: 0.6,
+                            delay: index * 0.1,
+                            ease: [0.21, 1.11, 0.81, 0.99],
+                          }}
+                          className="absolute transform"
+                          style={{
+                            top: position.top,
+                            left: position.left,
+                            rotate: position.rotate,
+                            zIndex: 10,
+                          }}
+                        >
+                          <PolaroidCard
+                            achievement={achievement}
+                            onClick={() => setSelectedAchievement(achievement)}
+                          />
+                        </motion.div>
+                      ) : null;
+                    })}
                 </AnimatePresence>
               </div>
             </div>

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, Plus } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -10,12 +10,14 @@ interface SidebarProps {
   categories: string[];
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
+  onSubmit: () => void;
 }
 
 export default function Sidebar({
   categories,
   selectedCategory,
   onSelectCategory,
+  onSubmit,
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
@@ -26,7 +28,7 @@ export default function Sidebar({
         animate={{ opacity: isCollapsed ? 0 : 0.7 }}
         className="fixed inset-0 bg-black/20 backdrop-blur-sm z-10"
         onClick={() => setIsCollapsed(true)}
-        style={{ display: isCollapsed ? 'none' : 'block' }}
+        style={{ display: isCollapsed ? "none" : "block" }}
       />
       <motion.div
         initial={false}
@@ -37,7 +39,9 @@ export default function Sidebar({
         <div className="relative h-full p-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-display font-semibold text-primary tracking-wide">Categories</h2>
+              <h2 className="text-2xl font-display font-semibold text-primary tracking-wide">
+                Categories
+              </h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -47,14 +51,15 @@ export default function Sidebar({
                 <ChevronLeft />
               </Button>
             </div>
+
             {categories.map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? "secondary" : "ghost"}
                 className={cn(
                   "w-full justify-start text-left font-sidebar text-base",
-                  selectedCategory === category 
-                    ? "bg-black text-white hover:bg-black/90" 
+                  selectedCategory === category
+                    ? "bg-black text-white hover:bg-black/90"
                     : "text-black/70 hover:text-black hover:bg-black/5"
                 )}
                 onClick={() => {
@@ -65,15 +70,28 @@ export default function Sidebar({
                 {category}
               </Button>
             ))}
+            {/* Add Submit Button at the top for mobile */}
+            <div className="block sm:hidden mb-6">
+              <Button
+                onClick={() => {
+                  onSubmit();
+                  setIsCollapsed(true);
+                }}
+                className="w-full bg-black text-white hover:bg-black/90"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Submit Achievement
+              </Button>
+            </div>
           </div>
         </div>
       </motion.div>
-      
+
       {isCollapsed && (
         <Button
           variant="ghost"
           size="icon"
-          className="absolute left-4 top-4 text-black hover:text-black/70"
+          className="absolute left-4 top-8 text-black hover:text-black/70"
           onClick={() => setIsCollapsed(false)}
         >
           <Menu />
