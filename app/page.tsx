@@ -21,28 +21,14 @@ export default function Home() {
   const [showContent, setShowContent] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
 
-  // Debounce function
-  function debounce<Params extends any[]>(
-    func: (...args: Params) => any,
-    timeout: number
-  ): (...args: Params) => void {
-    let timer: NodeJS.Timeout;
-    return (...args: Params) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        func(...args);
-      }, timeout);
-    };
-  }
-
   useEffect(() => {
     // Set initial width
     setWindowWidth(window.innerWidth);
 
     // Update width on resize
-    const handleResize = debounce(() => {
+    const handleResize = () => {
       setWindowWidth(window.innerWidth);
-    }, 100);
+    };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);

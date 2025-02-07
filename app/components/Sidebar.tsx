@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Menu, Plus } from "lucide-react";
@@ -13,7 +14,7 @@ interface SidebarProps {
   onSubmit: () => void;
 }
 
-export default function Sidebar({
+function Sidebar({
   categories,
   selectedCategory,
   onSelectCategory,
@@ -100,3 +101,5 @@ export default function Sidebar({
     </div>
   );
 }
+
+export default React.memo(Sidebar);

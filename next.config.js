@@ -1,8 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  output: "export",
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  experimental: {
+    reactCompiler: true,
   },
   images: { unoptimized: true },
 };
