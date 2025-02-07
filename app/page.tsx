@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Sidebar from "./components/Sidebar";
@@ -21,14 +21,28 @@ export default function Home() {
   const [showContent, setShowContent] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
 
+  // Debounce function
+  function debounce<Params extends any[]>(
+    func: (...args: Params) => any,
+    timeout: number
+  ): (...args: Params) => void {
+    let timer: NodeJS.Timeout;
+    return (...args: Params) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        func(...args);
+      }, timeout);
+    };
+  }
+
   useEffect(() => {
     // Set initial width
     setWindowWidth(window.innerWidth);
 
     // Update width on resize
-    const handleResize = () => {
+    const handleResize = debounce(() => {
       setWindowWidth(window.innerWidth);
-    };
+    }, 100);
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -43,42 +57,63 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  const calculatePosition = (index: number, total: number) => {
-    const isMobile = windowWidth < 768;
-    const isTablet = windowWidth >= 768 && windowWidth < 1024;
+  const calculatePosition = useCallback(
+    (index: number, total: number) => {
+      const isMobile = windowWidth < 768;
+      const isTablet = windowWidth >= 768 && windowWidth < 1024;
 
-    if (isMobile) {
-      return null;
+      if (isMobile) {
+        return null;
+      }
+
+      const itemsPerRow = isTablet ? 3 : 5;
+      const row = Math.floor(index / itemsPerRow);
+      const col = index % itemsPerRow;
+
+      const baseLeft = isTablet
+        ? col * 33.33 + 16.66 // 3 columns on tablet
+        : col * 20 + 10; // 5 columns on desktop
+
+      // Increase the vertical spacing by adjusting the multiplier (from 25 to 30)
+      const baseTop = row * 30 + 15;
+
+      // Reduce the random movement range to prevent overlap
+      const randomX = (Math.random() - 0.5) * 2;
+      const randomY = (Math.random() - 0.5) * 2;
+      const rotate = (Math.random() - 0.5) * 6;
+
+      return {
+        top: `${baseTop + randomY}%`,
+        left: `${baseLeft + randomX}%`,
+        rotate: `${rotate}deg`,
+      };
+    },
+    [windowWidth]
+  );
+
+  const filteredAchievements = useMemo(() => {
+    let filtered = achievements;
+
+    if (selectedCategory === "Overall TOP 10") {
+      filtered = achievements
+        .filter((achievement) => achievement.overallTop)
+        .slice(0, 15);
+    } else {
+      filtered = achievements.filter(
+        (achievement) => achievement.category === selectedCategory
+      );
     }
 
-    const itemsPerRow = isTablet ? 3 : 5;
-    const row = Math.floor(index / itemsPerRow);
-    const col = index % itemsPerRow;
+    return filtered;
+  }, [selectedCategory, achievements]);
 
-    const baseLeft = isTablet
-      ? col * 33.33 + 16.66 // 3 columns on tablet
-      : col * 20 + 10; // 5 columns on desktop
+  const handleSelectCategory = useCallback((category: string) => {
+    setSelectedCategory(category);
+  }, []);
 
-    // Increase the vertical spacing by adjusting the multiplier (from 25 to 30)
-    const baseTop = row * 30 + 15;
-
-    // Reduce the random movement range to prevent overlap
-    const randomX = (Math.random() - 0.5) * 2;
-    const randomY = (Math.random() - 0.5) * 2;
-    const rotate = (Math.random() - 0.5) * 6;
-
-    return {
-      top: `${baseTop + randomY}%`,
-      left: `${baseLeft + randomX}%`,
-      rotate: `${rotate}deg`,
-    };
-  };
-
-  const filteredAchievements = achievements.filter(
-    (achievement) =>
-      selectedCategory === "Overall TOP 10" ||
-      achievement.category === selectedCategory
-  );
+  const handleAchievementClick = useCallback((achievement: Achievement) => {
+    setSelectedAchievement(achievement);
+  }, []);
 
   return (
     <>
@@ -87,7 +122,7 @@ export default function Home() {
         <Sidebar
           categories={categories}
           selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
+          onSelectCategory={handleSelectCategory}
           onSubmit={() => router.push("/submit")}
         />
         {/* Add back the submit button with hidden-sm for mobile */}
@@ -131,7 +166,7 @@ export default function Home() {
                       >
                         <PolaroidCard
                           achievement={achievement}
-                          onClick={() => setSelectedAchievement(achievement)}
+                          onClick={() => handleAchievementClick(achievement)}
                         />
                       </motion.div>
                     ))}
@@ -173,7 +208,7 @@ export default function Home() {
                         >
                           <PolaroidCard
                             achievement={achievement}
-                            onClick={() => setSelectedAchievement(achievement)}
+                            onClick={() => handleAchievementClick(achievement)}
                           />
                         </motion.div>
                       ) : null;

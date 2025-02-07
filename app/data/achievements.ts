@@ -5,6 +5,7 @@ export interface Achievement {
   category: string;
   title: string;
   description: string;
+  overallTop?: boolean;
 }
 
 export const achievements: Achievement[] = [
@@ -17,6 +18,7 @@ export const achievements: Achievement[] = [
     title: "Outstanding Research in AI Ethics",
     description:
       "Led groundbreaking research in artificial intelligence ethics, publishing in top-tier journals and presenting at international conferences.",
+    overallTop: true,
   },
   {
     id: "2",
@@ -27,6 +29,7 @@ export const achievements: Achievement[] = [
     title: "Tech Innovation Award",
     description:
       "Developed a revolutionary sustainable energy solution that received international recognition and multiple patent approvals.",
+    overallTop: true,
   },
   {
     id: "3",
@@ -37,6 +40,7 @@ export const achievements: Achievement[] = [
     title: "Community Leadership Excellence",
     description:
       "Founded and led a successful nonprofit organization focusing on youth education in underserved communities.",
+    overallTop: true,
   },
   {
     id: "4",
@@ -47,6 +51,7 @@ export const achievements: Achievement[] = [
     title: "National Championship Victory",
     description:
       "Led the university team to a national championship victory while maintaining academic excellence.",
+    overallTop: true,
   },
   {
     id: "5",
@@ -57,6 +62,7 @@ export const achievements: Achievement[] = [
     title: "Breakthrough in Medical Research",
     description:
       "Made significant contributions to cancer research, leading to new treatment possibilities.",
+    overallTop: true,
   },
   {
     id: "6",
@@ -67,6 +73,7 @@ export const achievements: Achievement[] = [
     title: "Global Business Leadership",
     description:
       "Successfully led a multinational team in launching innovative products across three continents.",
+    overallTop: true,
   },
   {
     id: "7",
@@ -77,6 +84,7 @@ export const achievements: Achievement[] = [
     title: "Distinguished Teaching Award",
     description:
       "Recognized for exceptional teaching methods and student mentorship in computer science.",
+    overallTop: true,
   },
   {
     id: "8",
@@ -87,6 +95,7 @@ export const achievements: Achievement[] = [
     title: "Cybersecurity Excellence",
     description:
       "Developed cutting-edge security protocols now used by major tech companies worldwide.",
+    overallTop: true,
   },
   {
     id: "9",
@@ -97,6 +106,7 @@ export const achievements: Achievement[] = [
     title: "Environmental Science Pioneer",
     description:
       "Led groundbreaking research in climate change mitigation strategies.",
+    overallTop: true,
   },
   {
     id: "10",
@@ -107,6 +117,7 @@ export const achievements: Achievement[] = [
     title: "Engineering Innovation Award",
     description:
       "Revolutionized renewable energy systems with patented solar technology.",
+    overallTop: true,
   },
   {
     id: "11",
@@ -117,6 +128,7 @@ export const achievements: Achievement[] = [
     title: "International Mathematics Olympiad Gold",
     description:
       "Won gold medal at IMO 2023, representing the university with distinction in advanced mathematical problem-solving.",
+    overallTop: true,
   },
   {
     id: "12",
@@ -127,6 +139,7 @@ export const achievements: Achievement[] = [
     title: "Swimming World Record",
     description:
       "Broke the university record in 200m butterfly and represented the country at World Championships.",
+    overallTop: true,
   },
   {
     id: "13",
@@ -137,6 +150,7 @@ export const achievements: Achievement[] = [
     title: "Social Impact Initiative",
     description:
       'Founded "Tech for All" program, providing coding education to over 1000 underprivileged students.',
+    overallTop: true,
   },
   {
     id: "14",
@@ -147,6 +161,7 @@ export const achievements: Achievement[] = [
     title: "Blockchain Innovation Award",
     description:
       "Developed a revolutionary blockchain solution for sustainable supply chain management.",
+    overallTop: true,
   },
   {
     id: "15",
@@ -157,6 +172,118 @@ export const achievements: Achievement[] = [
     title: "Quantum Computing Research",
     description:
       "Published groundbreaking research in quantum computing algorithms in Nature journal.",
+    overallTop: true,
+  },
+  {
+    id: "16",
+    name: "Ethan Lee",
+    image:
+      "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=2787&auto=format&fit=crop",
+    category: "Academic Excellence",
+    title: "Valedictorian",
+    description: "Graduated as valedictorian with a perfect GPA.",
+  },
+  {
+    id: "17",
+    name: "Chloe Davis",
+    image:
+      "https://images.unsplash.com/photo-1618044235709-a5a19b02476d?q=80&w=2787&auto=format&fit=crop",
+    category: "Sports & Athletics",
+    title: "Tennis Champion",
+    description: "Won the national collegiate tennis championship.",
+  },
+  {
+    id: "18",
+    name: "Brandon Wilson",
+    image:
+      "https://images.unsplash.com/photo-1624298357597-593ba86ec318?q=80&w=2787&auto=format&fit=crop",
+    category: "Leadership & Service",
+    title: "Student Body President",
+    description:
+      "Served as student body president, implementing key initiatives.",
+  },
+  {
+    id: "19",
+    name: "Olivia Green",
+    image:
+      "https://images.unsplash.com/photo-1589156190803-720b6a36f743?q=80&w=2787&auto=format&fit=crop",
+    category: "Innovation & Technology",
+    title: "AI Innovator",
+    description: "Developed a novel AI algorithm for medical diagnosis.",
+  },
+  {
+    id: "20",
+    name: "Kevin Brown",
+    image:
+      "https://images.unsplash.com/photo-1607990281513-2c1a94c26198?q=80&w=2787&auto=format&fit=crop",
+    category: "Research Achievements",
+    title: "Climate Research Grant",
+    description: "Received a prestigious grant for climate change research.",
+  },
+  {
+    id: "21",
+    name: "Lauren Taylor",
+    image:
+      "https://images.unsplash.com/photo-1530268729814-6194e98f84bb?q=80&w=2787&auto=format&fit=crop",
+    category: "Professional Achievements",
+    title: "Startup Founder",
+    description: "Founded a successful tech startup.",
+  },
+  {
+    id: "22",
+    name: "Joseph Hill",
+    image:
+      "https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=2787&auto=format&fit=crop",
+    category: "Academic Excellence",
+    title: "Dean's List",
+    description:
+      "Regularly featured on the Dean's List for academic excellence.",
+  },
+  {
+    id: "23",
+    name: "Ashley White",
+    image:
+      "https://images.unsplash.com/photo-1541647376583-02892320673a?q=80&w=2787&auto=format&fit=crop",
+    category: "Sports & Athletics",
+    title: "Track and Field Star",
+    description: "Excelled in track and field, winning multiple awards.",
+  },
+  {
+    id: "24",
+    name: "Christopher King",
+    image:
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=2787&auto=format&fit=crop",
+    category: "Leadership & Service",
+    title: "Volunteer Leader",
+    description: "Led numerous volunteer initiatives in the community.",
+  },
+  {
+    id: "25",
+    name: "Jessica Wright",
+    image:
+      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=2787&auto=format&fit=crop",
+    category: "Innovation & Technology",
+    title: "Software Developer",
+    description:
+      "Developed innovative software solutions for various industries.",
+  },
+  {
+    id: "26",
+    name: "Daniel Garcia",
+    image:
+      "https://images.unsplash.com/photo-1568602471122-78329514c265?q=80&w=2787&auto=format&fit=crop",
+    category: "Research Achievements",
+    title: "Medical Breakthrough",
+    description: "Contributed to a significant medical breakthrough.",
+  },
+  {
+    id: "27",
+    name: "Michelle Adams",
+    image:
+      "https://images.unsplash.com/photo-1555952517-2e8e729e0b44?q=80&w=2787&auto=format&fit=crop",
+    category: "Professional Achievements",
+    title: "Business Innovator",
+    description: "Introduced innovative business strategies.",
   },
 ];
 
