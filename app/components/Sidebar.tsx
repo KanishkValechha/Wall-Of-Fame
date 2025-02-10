@@ -22,6 +22,11 @@ function Sidebar({
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
+  const handleCategorySelect = (category: string) => {
+    onSelectCategory(category);
+    setIsCollapsed(true);
+  };
+
   return (
     <div className="fixed inset-y-0 left-0 z-50">
       <motion.div
@@ -34,7 +39,11 @@ function Sidebar({
       <motion.div
         initial={false}
         animate={{ x: isCollapsed ? -320 : 0 }}
-        transition={{ type: "spring", damping: 20 }}
+        transition={{
+          type: "spring",
+          damping: 20,
+          duration: 0.3,
+        }}
         className="absolute top-0 left-0 h-full w-[300px] bg-white shadow-lg z-20 border-r border-black/10"
       >
         <div className="relative h-full p-6">
@@ -63,10 +72,7 @@ function Sidebar({
                     ? "bg-black text-white hover:bg-black/90"
                     : "text-black/70 hover:text-black hover:bg-black/5"
                 )}
-                onClick={() => {
-                  onSelectCategory(category);
-                  setIsCollapsed(true);
-                }}
+                onClick={() => handleCategorySelect(category)}
               >
                 {category}
               </Button>

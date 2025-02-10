@@ -10,6 +10,7 @@ import WelcomePage from "./WelcomePage";
 import SubmitAchievementForm from "./SubmitAchievementForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useAnimationSequence } from "../hooks/useAnimationSequence";
 
 // Import types from your data file
 import { Achievement } from "../data/achievements";
@@ -17,19 +18,33 @@ import { Achievement } from "../data/achievements";
 export interface InteractiveHomeClientProps {
   achievements: Achievement[];
   categories: string[];
+  isReturning?: boolean;
 }
 
 export default function InteractiveHomeClient({
   achievements,
   categories,
+  isReturning = false,
 }: InteractiveHomeClientProps) {
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
+  const [selectedCategory, setSelectedCategory] = useState(
+    isReturning ? "Overall TOP 10" : categories[0]
+  );
   const [selectedAchievement, setSelectedAchievement] =
     useState<Achievement | null>(null);
   const [windowWidth, setWindowWidth] = useState(0);
-  const [showContent, setShowContent] = useState(false);
+
+  const [showContent, setShowContent] = useState(isReturning);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
+
+  const [showWelcome, setShowWelcome] = useState(!isReturning);
+
+  const {
+    isSidebarAnimating,
+    isContentFadingOut,
+    isContentFadingIn,
+    startAnimationSequence,
+  } = useAnimationSequence();
 
   useEffect(() => {
     setWindowWidth(window.innerWidth);
@@ -39,11 +54,13 @@ export default function InteractiveHomeClient({
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowContent(true);
-    }, 3700);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!isReturning) {
+      const timer = setTimeout(() => {
+        setShowContent(true);
+      }, 3700);
+      return () => clearTimeout(timer);
+    }
+  }, [isReturning]);
 
   const calculatePosition = useCallback(
     (index: number) => {
@@ -74,9 +91,15 @@ export default function InteractiveHomeClient({
     return achievements.filter((a) => a.category === selectedCategory);
   }, [selectedCategory, achievements]);
 
-  const handleSelectCategory = useCallback((category: string) => {
-    setSelectedCategory(category);
-  }, []);
+  const handleSelectCategory = useCallback(
+    (category: string) => {
+      startAnimationSequence();
+      setTimeout(() => {
+        setSelectedCategory(category);
+      }, 900);
+    },
+    [startAnimationSequence]
+  );
 
   const handleAchievementClick = useCallback((achievement: Achievement) => {
     setSelectedAchievement(achievement);
@@ -84,7 +107,7 @@ export default function InteractiveHomeClient({
 
   return (
     <>
-      <WelcomePage />
+      {showWelcome && <WelcomePage />}
       <div className="min-h-screen fancy-bg relative overflow-x-hidden">
         <Sidebar
           categories={categories}
@@ -115,56 +138,23 @@ export default function InteractiveHomeClient({
             <div className="relative w-full min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] max-w-7xl mx-auto px-4 sm:px-4 pt-[140px] sm:pt-[160px]">
               {/* For small screens */}
               <div className="sm:hidden grid grid-cols-2 gap-4 mb-20 justify-items-center">
-                <AnimatePresence mode="sync">
-                  {showContent &&
-                    filteredAchievements.map((achievement, index) => (
-                      <motion.div
-                        key={achievement.id}
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{
-                          duration: 0.6,
-                          delay: index * 0.1,
-                          ease: [0.21, 1.11, 0.81, 0.99],
-                        }}
-                      >
-                        <PolaroidCard
-                          achievement={achievement}
-                          onClick={() => handleAchievementClick(achievement)}
-                        />
-                      </motion.div>
-                    ))}
-                </AnimatePresence>
-              </div>
-              {/* For medium and larger screens */}
-              <div className="hidden sm:block relative w-full min-h-[calc(100vh-140px)]">
-                <AnimatePresence mode="sync">
-                  {showContent &&
-                    filteredAchievements.map((achievement, index) => {
-                      const position = calculatePosition(index);
-                      return position ? (
+                <AnimatePresence mode="popLayout">
+                  {showContent && !isContentFadingOut && (
+                    <motion.div
+                      key={selectedCategory}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="grid grid-cols-2 gap-4 w-full"
+                    >
+                      {filteredAchievements.map((achievement, index) => (
                         <motion.div
                           key={achievement.id}
-                          initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                          animate={{
-                            opacity: 1,
-                            scale: 1,
-                            y: "-50%",
-                            x: "-50%",
-                          }}
-                          exit={{ opacity: 0, scale: 0.8 }}
+                          initial={{ opacity: 0, y: 50 }}
+                          animate={{ opacity: 1, y: 0 }}
                           transition={{
-                            duration: 0.6,
-                            delay: index * 0.1,
-                            ease: [0.21, 1.11, 0.81, 0.99],
-                          }}
-                          className="absolute transform"
-                          style={{
-                            top: position.top,
-                            left: position.left,
-                            rotate: position.rotate,
-                            zIndex: 10,
+                            duration: isReturning ? 0 : 0.6,
+                            delay: isReturning ? 0 : index * 0.1,
                           }}
                         >
                           <PolaroidCard
@@ -172,8 +162,70 @@ export default function InteractiveHomeClient({
                             onClick={() => handleAchievementClick(achievement)}
                           />
                         </motion.div>
-                      ) : null;
-                    })}
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              {/* For medium and larger screens */}
+              <div className="hidden sm:block relative w-full min-h-[calc(100vh-140px)]">
+                <AnimatePresence mode="popLayout">
+                  {showContent && !isContentFadingOut && (
+                    <motion.div
+                      key={selectedCategory}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="relative w-full min-h-[calc(100vh-140px)]"
+                    >
+                      {filteredAchievements.map((achievement, index) => {
+                        const position = calculatePosition(index);
+                        return position ? (
+                          <motion.div
+                            key={achievement.id}
+                            initial={
+                              isReturning
+                                ? {
+                                    opacity: 1,
+                                    scale: 1,
+                                    y: "-50%",
+                                    x: "-50%",
+                                  }
+                                : {
+                                    opacity: 0,
+                                    y: 50,
+                                    scale: 0.8,
+                                  }
+                            }
+                            animate={{
+                              opacity: 1,
+                              scale: 1,
+                              y: "-50%",
+                              x: "-50%",
+                            }}
+                            transition={{
+                              duration: isReturning ? 0 : 0.5,
+                              delay: isReturning ? 0 : index * 0.05,
+                            }}
+                            className="absolute transform"
+                            style={{
+                              top: position.top,
+                              left: position.left,
+                              rotate: position.rotate,
+                              zIndex: 10,
+                            }}
+                          >
+                            <PolaroidCard
+                              achievement={achievement}
+                              onClick={() =>
+                                handleAchievementClick(achievement)
+                              }
+                            />
+                          </motion.div>
+                        ) : null;
+                      })}
+                    </motion.div>
+                  )}
                 </AnimatePresence>
               </div>
             </div>
