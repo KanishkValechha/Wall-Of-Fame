@@ -137,7 +137,7 @@ export default function InteractiveHomeClient({
             {/* Content */}
             <div className="relative w-full min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] max-w-7xl mx-auto px-4 sm:px-4 pt-[140px] sm:pt-[160px]">
               {/* For small screens */}
-              <div className="sm:hidden grid grid-cols-2 gap-4 mb-20 justify-items-center">
+              <div className="sm:hidden w-full">
                 <AnimatePresence mode="popLayout">
                   {showContent && !isContentFadingOut && (
                     <motion.div
@@ -145,24 +145,28 @@ export default function InteractiveHomeClient({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="grid grid-cols-2 gap-4 w-full"
+                      className="w-full"
                     >
-                      {filteredAchievements.map((achievement, index) => (
-                        <motion.div
-                          key={achievement.id}
-                          initial={{ opacity: 0, y: 50 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: isReturning ? 0 : 0.6,
-                            delay: isReturning ? 0 : index * 0.1,
-                          }}
-                        >
-                          <PolaroidCard
-                            achievement={achievement}
-                            onClick={() => handleAchievementClick(achievement)}
-                          />
-                        </motion.div>
-                      ))}
+                      <div className="grid grid-cols-2 gap-4">
+                        {filteredAchievements.map((achievement, index) => (
+                          <motion.div
+                            key={achievement.id}
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                              duration: isReturning ? 0 : 0.6,
+                              delay: isReturning ? 0 : index * 0.1,
+                            }}
+                          >
+                            <PolaroidCard
+                              achievement={achievement}
+                              onClick={() =>
+                                handleAchievementClick(achievement)
+                              }
+                            />
+                          </motion.div>
+                        ))}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
