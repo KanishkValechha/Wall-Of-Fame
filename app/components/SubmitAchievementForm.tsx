@@ -1,12 +1,12 @@
-"use client";
+"use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { categories } from "../data/achievements";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import axios from "axios";
 
 interface SubmitAchievementFormProps {
   isOpen: boolean;
@@ -15,19 +15,59 @@ interface SubmitAchievementFormProps {
 
 export default function SubmitAchievementForm({ isOpen, onClose }: SubmitAchievementFormProps) {
   const [formData, setFormData] = useState({
-    name: "",
-    regNo: "",
-    mobile: "",
-    category: "",
-    professorName: "",
-    proof: null as File | null
+    fullName: "Vedic Varma",
+    registrationNumber: "229302083",
+    mobileNumber: "8766304030",
+    achievementCategory: "Innovation & Technology",
+    professorName: "Amit Garg",
+    professorEmail: "vedic20052005@gmail.com",
+    userImage: null as File | null,
+    certificateProof: null as File | null,
+    submissionDate: new Date().toISOString(),
+    approved: null,
+    remarks: "sdc project",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log(formData);
-    onClose();
+    
+    const formDataToSend = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value instanceof File) {
+        formDataToSend.append(key, value);
+      } else {
+        formDataToSend.append(key, String(value));
+      }
+    });
+
+    try {
+      const response = await axios.post("https://your-backend-url.com/submit", formDataToSend, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.status === 200) {
+        setMessage({ text: "Submission successful!", isError: false });
+        setFormData({
+          fullName: "",
+          registrationNumber: "",
+          mobileNumber: "",
+          achievementCategory: "",
+          professorName: "",
+          professorEmail: "",
+          userImage: null,
+          certificateProof: null,
+          submissionDate: new Date().toISOString(),
+          approved: null,
+          remarks: "",
+        });
+      } else {
+        setMessage({ text: "Submission failed. Please try again.", isError: true });
+      }
+    } catch (error) {
+      setMessage({ text: "Error submitting form. Check your connection.", isError: true });
+    }
   };
 
   return (
@@ -36,57 +76,58 @@ export default function SubmitAchievementForm({ isOpen, onClose }: SubmitAchieve
         <DialogHeader>
           <DialogTitle className="text-2xl font-display">Submit Achievement</DialogTitle>
         </DialogHeader>
+        {message && (
+          <div className={`p-2 rounded-md text-center ${message.isError ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}>
+            {message.text}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="fullName">Full Name</Label>
             <Input
-              id="name"
+              id="fullName"
               required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              value={formData.fullName}
+              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="regNo">Registration Number</Label>
+            <Label htmlFor="registrationNumber">Registration Number</Label>
             <Input
-              id="regNo"
+              id="registrationNumber"
               required
-              value={formData.regNo}
-              onChange={(e) => setFormData({ ...formData, regNo: e.target.value })}
+              value={formData.registrationNumber}
+              onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="mobile">Mobile Number</Label>
+            <Label htmlFor="mobileNumber">Mobile Number</Label>
             <Input
-              id="mobile"
+              id="mobileNumber"
               type="tel"
               required
-              value={formData.mobile}
-              onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+              value={formData.mobileNumber}
+              onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="category">Achievement Category</Label>
+            <Label htmlFor="achievementCategory">Achievement Category</Label>
             <Select
-              value={formData.category}
-              onValueChange={(value) => setFormData({ ...formData, category: value })}
+              value={formData.achievementCategory}
+              onValueChange={(value) => setFormData({ ...formData, achievementCategory: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                {categories.filter(cat => cat !== "Overall TOP 10").map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
+                <SelectItem value="Innovation & Technology">Innovation & Technology</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="professorName">Professor Name</Label>
             <Input
@@ -96,18 +137,40 @@ export default function SubmitAchievementForm({ isOpen, onClose }: SubmitAchieve
               onChange={(e) => setFormData({ ...formData, professorName: e.target.value })}
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="proof">Certificate/Proof of Work</Label>
+            <Label htmlFor="professorEmail">Professor Email</Label>
             <Input
-              id="proof"
+              id="professorEmail"
+              type="email"
+              required
+              value={formData.professorEmail}
+              onChange={(e) => setFormData({ ...formData, professorEmail: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="userImage">User Image</Label>
+            <Input
+              id="userImage"
+              type="file"
+              required
+              accept="image/*"
+              onChange={(e) => setFormData({ ...formData, userImage: e.target.files?.[0] || null })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="certificateProof">Certificate/Proof</Label>
+            <Input
+              id="certificateProof"
               type="file"
               required
               accept=".pdf,.jpg,.jpeg,.png"
-              onChange={(e) => setFormData({ ...formData, proof: e.target.files?.[0] || null })}
+              onChange={(e) => setFormData({ ...formData, certificateProof: e.target.files?.[0] || null })}
             />
           </div>
-          
+
           <Button type="submit" className="w-full">Submit Achievement</Button>
         </form>
       </DialogContent>

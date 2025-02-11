@@ -12,8 +12,7 @@ export const achievements: Achievement[] = [
   {
     id: "1",
     name: "Emma Thompson",
-    image:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Academic Excellence",
     title: "Outstanding Research in AI Ethics",
     description:
@@ -23,8 +22,7 @@ export const achievements: Achievement[] = [
   {
     id: "2",
     name: "Michael Chen",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Innovation & Technology",
     title: "Tech Innovation Award",
     description:
@@ -34,8 +32,7 @@ export const achievements: Achievement[] = [
   {
     id: "3",
     name: "Sarah Williams",
-    image:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Leadership & Service",
     title: "Community Leadership Excellence",
     description:
@@ -45,8 +42,7 @@ export const achievements: Achievement[] = [
   {
     id: "4",
     name: "James Rodriguez",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Sports & Athletics",
     title: "National Championship Victory",
     description:
@@ -56,8 +52,7 @@ export const achievements: Achievement[] = [
   {
     id: "5",
     name: "Lisa Zhang",
-    image:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Research Achievements",
     title: "Breakthrough in Medical Research",
     description:
@@ -67,8 +62,7 @@ export const achievements: Achievement[] = [
   {
     id: "6",
     name: "David Park",
-    image:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Professional Achievements",
     title: "Global Business Leadership",
     description:
@@ -78,8 +72,7 @@ export const achievements: Achievement[] = [
   {
     id: "7",
     name: "Maria Garcia",
-    image:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Academic Excellence",
     title: "Distinguished Teaching Award",
     description:
@@ -89,8 +82,7 @@ export const achievements: Achievement[] = [
   {
     id: "8",
     name: "Alex Foster",
-    image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Innovation & Technology",
     title: "Cybersecurity Excellence",
     description:
@@ -100,8 +92,7 @@ export const achievements: Achievement[] = [
   {
     id: "9",
     name: "Nina Patel",
-    image:
-      "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Research Achievements",
     title: "Environmental Science Pioneer",
     description:
@@ -111,8 +102,7 @@ export const achievements: Achievement[] = [
   {
     id: "10",
     name: "Thomas Wright",
-    image:
-      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Professional Achievements",
     title: "Engineering Innovation Award",
     description:
@@ -122,8 +112,7 @@ export const achievements: Achievement[] = [
   {
     id: "11",
     name: "Aisha Rahman",
-    image:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Academic Excellence",
     title: "International Mathematics Olympiad Gold",
     description:
@@ -133,8 +122,7 @@ export const achievements: Achievement[] = [
   {
     id: "12",
     name: "Marcus Johnson",
-    image:
-      "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Sports & Athletics",
     title: "Swimming World Record",
     description:
@@ -144,8 +132,7 @@ export const achievements: Achievement[] = [
   {
     id: "13",
     name: "Sofia Martinez",
-    image:
-      "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Leadership & Service",
     title: "Social Impact Initiative",
     description:
@@ -155,8 +142,7 @@ export const achievements: Achievement[] = [
   {
     id: "14",
     name: "Ryan O'Connor",
-    image:
-      "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Innovation & Technology",
     title: "Blockchain Innovation Award",
     description:
@@ -166,8 +152,7 @@ export const achievements: Achievement[] = [
   {
     id: "15",
     name: "Priya Sharma",
-    image:
-      "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Research Achievements",
     title: "Quantum Computing Research",
     description:
@@ -177,8 +162,7 @@ export const achievements: Achievement[] = [
   {
     id: "16",
     name: "Ethan Lee",
-    image:
-      "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Academic Excellence",
     title: "Valedictorian",
     description: "Graduated as valedictorian with a perfect GPA.",
@@ -186,8 +170,7 @@ export const achievements: Achievement[] = [
   {
     id: "17",
     name: "Chloe Davis",
-    image:
-      "https://images.unsplash.com/photo-1618044235709-a5a19b02476d?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Sports & Athletics",
     title: "Tennis Champion",
     description: "Won the national collegiate tennis championship.",
@@ -195,8 +178,7 @@ export const achievements: Achievement[] = [
   {
     id: "18",
     name: "Brandon Wilson",
-    image:
-      "https://images.unsplash.com/photo-1624298357597-593ba86ec318?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Leadership & Service",
     title: "Student Body President",
     description:
@@ -205,8 +187,7 @@ export const achievements: Achievement[] = [
   {
     id: "19",
     name: "Olivia Green",
-    image:
-      "https://images.unsplash.com/photo-1589156190803-720b6a36f743?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Innovation & Technology",
     title: "AI Innovator",
     description: "Developed a novel AI algorithm for medical diagnosis.",
@@ -214,8 +195,7 @@ export const achievements: Achievement[] = [
   {
     id: "20",
     name: "Kevin Brown",
-    image:
-      "https://images.unsplash.com/photo-1607990281513-2c1a94c26198?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Research Achievements",
     title: "Climate Research Grant",
     description: "Received a prestigious grant for climate change research.",
@@ -223,8 +203,7 @@ export const achievements: Achievement[] = [
   {
     id: "21",
     name: "Lauren Taylor",
-    image:
-      "https://images.unsplash.com/photo-1530268729814-6194e98f84bb?q=80&w=2787&auto=format&fit=crop",
+    image: "https://media.licdn.com/dms/image/v2/D4D03AQHs0nNvkfCeTA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1695459876908?e=1744848000&v=beta&t=zxePRzbABlZIyh8mXfDDyV7codZkdQy2JSD-jy_JrRk",
     category: "Professional Achievements",
     title: "Startup Founder",
     description: "Founded a successful tech startup.",
