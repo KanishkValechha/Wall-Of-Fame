@@ -1,0 +1,117 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { MongoClient, Binary } from 'mongodb';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
+
+// MongoDB connection
+if (!process.env.mongoURL) {
+    throw new Error("Missing MONGO_URL in environment variables");
+  }
+  const uri = process.env.mongoURL as string;
+  const client = new MongoClient(uri);
+  
+// Define expected file types
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
+const ALLOWED_CERTIFICATE_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+
+export async function POST(req: NextRequest) {
+    try {
+        // Parse the multipart form data
+        const formData = await req.formData();
+        
+        // Extract files
+        const userImage = formData.get('userImage') as File;
+        const certificateProof = formData.get('certificateProof') as File;
+
+        // Validate file types
+        if (!ALLOWED_IMAGE_TYPES.includes(userImage.type)) {
+            return NextResponse.json(
+                { error: 'Invalid user image type. Please upload JPEG or PNG.' },
+                { status: 400 }
+            );
+        }
+
+        if (!ALLOWED_CERTIFICATE_TYPES.includes(certificateProof.type)) {
+            return NextResponse.json(
+                { error: 'Invalid certificate type. Please upload PDF, JPEG, or PNG.' },
+                { status: 400 }
+            );
+        }
+
+        // Convert files to Binary for MongoDB storage
+        const userImageArrayBuffer = await userImage.arrayBuffer();
+        const certificateArrayBuffer = await certificateProof.arrayBuffer();
+
+        // Create the achievement document
+        const achievement = {
+            fullName: formData.get('fullName'),
+            registrationNumber: formData.get('registrationNumber'),
+            mobileNumber: formData.get('mobileNumber'),
+            achievementCategory: formData.get('achievementCategory'),
+            professorName: formData.get('professorName'),
+            professorEmail: formData.get('professorEmail'),
+            userImage: {
+                data: new Binary(Buffer.from(userImageArrayBuffer)),
+                contentType: userImage.type
+            },
+            certificateProof: {
+                data: new Binary(Buffer.from(certificateArrayBuffer)),
+                contentType: certificateProof.type
+            },
+            submissionDate: new Date(),
+            remarks: formData.get('remarks')|| '',
+            approved: null
+        };
+
+        // Validate required fields
+        const requiredFields = [
+            'fullName',
+            'registrationNumber',
+            'mobileNumber',
+            'achievementCategory',
+            'professorName',
+            'professorEmail'
+        ];
+
+        for (const field of requiredFields) {
+            if (!formData.get(field)) {
+                return NextResponse.json(
+                    { error: `Missing required field: ${field}` },
+                    { status: 400 }
+                );
+            }
+        }
+
+        // Connect to MongoDB
+        await client.connect();
+        const db = client.db('Wall-Of-Fame');
+        const collection = db.collection('achievers');
+
+        // Insert the achievement
+        const result = await collection.insertOne(achievement);
+
+        return NextResponse.json({
+            success: true,
+            message: 'Achievement submitted successfully',
+            documentId: result.insertedId
+        });
+
+    } catch (error) {
+        console.error('Error submitting achievement:', error);
+        return NextResponse.json(
+            { error: 'Failed to submit achievement' },
+            { status: 500 }
+        );
+    } finally {
+        // Always close the connection
+        await client.close();
+    }
+}
+
+// Set larger size limit for the API route
+export const config = {
+    api: {
+        bodyParser: false,
+        sizeLimit: '10mb'
+    }
+};
