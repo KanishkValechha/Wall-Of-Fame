@@ -31,7 +31,7 @@ export default function WelcomePage() {
           className="space-y-2"
         >
           <h2 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold bg-gradient-to-r from-black via-neutral-800 to-black bg-clip-text text-transparent">
-            MUJ
+            MUJ CSE DEPT
           </h2>
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-display italic text-neutral-700">
             Wall of Fame

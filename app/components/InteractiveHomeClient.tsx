@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Sidebar from "./Sidebar";
 import PolaroidCard from "./PolaroidCard";
 import AchievementModal from "./AchievementModal";
@@ -11,6 +12,9 @@ import SubmitAchievementForm from "./SubmitAchievementForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useAnimationSequence } from "../hooks/useAnimationSequence";
+import Logo from "./Logo";
+import { teamMembers } from "../data/team";
+import TeamModal from "./TeamModal";
 
 // Import types from your data file
 import { Achievement } from "../data/achievements";
@@ -36,6 +40,7 @@ export default function InteractiveHomeClient({
 
   const [showContent, setShowContent] = useState(isReturning);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [showTeamModal, setShowTeamModal] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(!isReturning);
 
@@ -126,15 +131,18 @@ export default function InteractiveHomeClient({
           <main className="min-h-screen overflow-y-auto">
             {/* Header */}
             <div className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-md h-[120px] sm:h-[140px]">
-              <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+              <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
                 <div className="decorative-line mb-4"></div>
-                <h1 className="title-gradient text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold text-center tracking-wider">
-                  Wall of Fame
-                </h1>
+                <div className="flex items-center justify-center gap-2 sm:gap-4">
+                  <Logo />
+                  <h1 className="title-gradient text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold text-center tracking-wider">
+                    Wall of Fame
+                  </h1>
+                </div>
                 <div className="decorative-line mt-4"></div>
               </div>
             </div>
-            {/* Content */}
+            {/* Adjust the top padding back to original values */}
             <div className="relative w-full min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] max-w-7xl mx-auto px-4 sm:px-4 pt-[140px] sm:pt-[160px]">
               {/* For small screens */}
               <div className="sm:hidden w-full">
@@ -235,6 +243,40 @@ export default function InteractiveHomeClient({
             </div>
           </main>
         </div>
+        <motion.div
+          onClick={() => setShowTeamModal(true)}
+          className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-600 to-pink-600 
+            text-white px-6 py-3 rounded-full cursor-pointer shadow-lg hover:shadow-xl
+            backdrop-blur-sm text-sm sm:text-base font-medium flex items-center gap-2
+            border border-white/20"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="w-5 h-5 relative">
+            <Image
+              src="/logo.png"
+              alt="SDC Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
+          Made by the SDC Team
+          <motion.div
+            className="absolute inset-0 bg-white rounded-full"
+            style={{ mixBlendMode: "overlay" }}
+            initial={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.5, opacity: 0.2 }}
+            transition={{ duration: 0.3 }}
+          />
+        </motion.div>
+        <TeamModal
+          isOpen={showTeamModal}
+          onClose={() => setShowTeamModal(false)}
+          teamMembers={teamMembers}
+        />
         <AchievementModal
           achievement={selectedAchievement}
           isOpen={!!selectedAchievement}
