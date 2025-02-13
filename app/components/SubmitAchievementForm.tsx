@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { categories } from "../data/achievements";
+
 
 interface SubmitAchievementFormProps {
   isOpen: boolean;
@@ -123,8 +125,14 @@ export default function SubmitAchievementForm({ isOpen, onClose }: SubmitAchieve
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Innovation & Technology">Innovation & Technology</SelectItem>
-              </SelectContent>
+                  {categories
+                    .filter((cat) => cat !== "Overall TOP 10")
+                    .map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
             </Select>
           </div>
 
