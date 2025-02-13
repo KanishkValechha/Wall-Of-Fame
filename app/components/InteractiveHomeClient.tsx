@@ -8,7 +8,6 @@ import Sidebar from "./Sidebar";
 import PolaroidCard from "./PolaroidCard";
 import AchievementModal from "./AchievementModal";
 import WelcomePage from "./WelcomePage";
-import SubmitAchievementForm from "./SubmitAchievementForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useAnimationSequence } from "../hooks/useAnimationSequence";
@@ -281,10 +280,6 @@ export default function InteractiveHomeClient({
           achievement={selectedAchievement}
           isOpen={!!selectedAchievement}
           onClose={() => setSelectedAchievement(null)}
-        />
-        <SubmitAchievementForm
-          isOpen={showSubmitForm}
-          onClose={() => setShowSubmitForm(false)}
         />
       </div>
     </>

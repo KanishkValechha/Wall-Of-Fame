@@ -52,7 +52,7 @@ export class OTPService {
 
       // Send email
       await resend.emails.send({
-        from: 'onboarding@resend.dev',
+        from: 'send@vedicvarma.com',
         to: email,
         subject: 'Your Verification Code',
         html: `
