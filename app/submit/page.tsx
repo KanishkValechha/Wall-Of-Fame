@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef} from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -19,17 +19,17 @@ import axios from "axios";
 export default function SubmitPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    fullName: "Vedic Varma",
-    registrationNumber: "229302083",
-    mobileNumber: "8766304030",
-    achievementCategory: "Innovation & Technology",
-    professorName: "Amit Garg",
-    professorEmail: "vedic20052005@gmail.com",
+    fullName: "",
+    registrationNumber: "",
+    mobileNumber: "",
+    achievementCategory: "",
+    professorName: "",
+    professorEmail: "",
     userImage: null as File | null,
     certificateProof: null as File | null,
     submissionDate: new Date().toISOString(),
     approved: null,
-    remarks: "sdc project",
+    remarks: "",
   });
 
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(
@@ -38,6 +38,8 @@ export default function SubmitPage() {
   const handleBack = () => {
     router.push("/?return=true");
   };
+  const userImageRef = useRef<HTMLInputElement>(null);
+  const certificateProofRef = useRef<HTMLInputElement>(null);  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -49,14 +51,16 @@ export default function SubmitPage() {
         formDataToSend.append(key, String(value));
       }
     });
-
+  
     try {
       const response = await axios.post("/api/submitAchievement", formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
+  
       if (response.status === 200) {
         setMessage({ text: "Submission successful!", isError: false });
+  
+        // Reset form data
         setFormData({
           fullName: "",
           registrationNumber: "",
@@ -64,12 +68,16 @@ export default function SubmitPage() {
           achievementCategory: "",
           professorName: "",
           professorEmail: "",
-          userImage: null as unknown as File,
-          certificateProof: null as unknown as File,
+          userImage: null,
+          certificateProof: null,
           submissionDate: new Date().toISOString(),
           approved: null,
           remarks: "",
         });
+  
+        // Clear file input fields
+        if (userImageRef.current) userImageRef.current.value = "";
+        if (certificateProofRef.current) certificateProofRef.current.value = "";
       } else {
         setMessage({ text: "Submission failed. Please try again.", isError: true });
       }

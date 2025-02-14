@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Binary } from 'mongodb';
+// Add this line at the top of your file
+export const dynamic = 'force-dynamic';
 
 if (!process.env.mongoURL) {
     throw new Error("Missing MONGO_URL in environment variables");
