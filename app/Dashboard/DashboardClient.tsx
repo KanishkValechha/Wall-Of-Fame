@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, Check, X, MessageCircle } from "lucide-react";
-import { RemarksModal } from "./RemarksModal";
+import { formatDistanceToNow } from "date-fns";
 
 interface Achievement {
   _id: string;
@@ -126,7 +126,7 @@ export default function DashboardClient() {
                         <div className="text-sm text-gray-500">{ach.registrationNumber}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{ach.achievementCategory}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{ach.submissionDate}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{formatDistanceToNow(new Date(ach.submissionDate), { addSuffix: true })}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${ach.approved ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
                           {ach.approved ? "Approved" : "Pending"}
