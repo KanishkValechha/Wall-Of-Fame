@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Binary } from 'mongodb';
-// Add this line at the top of your file
-export const dynamic = 'force-dynamic';
 
 if (!process.env.mongoURL) {
     throw new Error("Missing MONGO_URL in environment variables");
@@ -27,8 +25,8 @@ export async function GET(req: NextRequest) {
 
         await client.connect();
         const db = client.db('Wall-Of-Fame');
-        const achievements = await db.collection('achievements').find(filter).toArray();
-
+        const achievements = await db.collection('achievers').find(filter).toArray();
+        // console.log(achievements);
         return NextResponse.json({ achievements }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch achievements' }, { status: 500 });

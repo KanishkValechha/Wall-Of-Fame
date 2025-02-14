@@ -16,8 +16,8 @@ import { RemarksModal } from "./RemarksModal";
 
 interface Achievement {
   _id: string;
-  studentName: string;
-  studentRegNo: string;
+  fullName: string;
+  registrationNumber: string;
   achievementCategory: string;
   professorEmail: string;
   submissionDate: string;
@@ -54,8 +54,8 @@ export default function DashboardClient() {
 
   const filteredAchievements = achievements.filter((ach) => {
     const matchesSearch =
-      ach.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ach.studentRegNo.toLowerCase().includes(searchQuery.toLowerCase());
+      ach.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ach.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory =
       selectedCategory === "all" || ach.achievementCategory === selectedCategory;
     const matchesStatus =
@@ -122,8 +122,8 @@ export default function DashboardClient() {
                   {filteredAchievements.map((ach) => (
                     <motion.tr key={ach._id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">{ach.studentName}</div>
-                        <div className="text-sm text-gray-500">{ach.studentRegNo}</div>
+                        <div className="text-sm font-medium text-gray-900">{ach.fullName}</div>
+                        <div className="text-sm text-gray-500">{ach.registrationNumber}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{ach.achievementCategory}</td>
                       <td className="px-6 py-4 text-sm text-gray-500">{ach.submissionDate}</td>
