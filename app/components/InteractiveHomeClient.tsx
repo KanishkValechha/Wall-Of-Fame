@@ -66,34 +66,55 @@ export default function InteractiveHomeClient({
     }
   }, [isReturning]);
 
-  const calculatePosition = useCallback(
-    (index: number) => {
-      const isMobile = windowWidth < 768;
-      const isTablet = windowWidth >= 768 && windowWidth < 1024;
-      if (isMobile) return null;
-      const itemsPerRow = isTablet ? 3 : 5;
-      const row = Math.floor(index / itemsPerRow);
-      const col = index % itemsPerRow;
-      const baseLeft = isTablet ? col * 33.33 + 16.66 : col * 20 + 10;
-      const baseTop = row * 30 + 15;
-      const randomX = (Math.random() - 0.5) * 2;
-      const randomY = (Math.random() - 0.5) * 2;
-      const rotate = (Math.random() - 0.5) * 6;
-      return {
-        top: `${baseTop + randomY}%`,
-        left: `${baseLeft + randomX}%`,
-        rotate: `${rotate}deg`,
-      };
-    },
-    [windowWidth]
-  );
-
   const filteredAchievements = useMemo(() => {
     if (selectedCategory === "Overall TOP 10") {
       return achievements.filter((a) => a.overallTop).slice(0, 15);
     }
     return achievements.filter((a) => a.category === selectedCategory);
   }, [selectedCategory, achievements]);
+
+  const calculatePosition = useCallback(
+    (index: number) => {
+      const isMobile = windowWidth < 768;
+      const isTablet = windowWidth >= 768 && windowWidth < 1024;
+      if (isMobile) return null;
+
+      const itemsPerRow = isTablet ? 3 : 5;
+      const row = Math.floor(index / itemsPerRow);
+      const col = index % itemsPerRow;
+
+      // Calculate grid dimensions
+      const totalItems = filteredAchievements.length;
+      const totalRows = Math.ceil(totalItems / itemsPerRow);
+
+      // Adjust horizontal centering with offset
+      const gridWidth = isTablet ? 75 : 80; // Slightly reduced width
+      const cellWidth = gridWidth / itemsPerRow;
+      const gridLeft = (100 - gridWidth) / 2;
+      const horizontalOffset = isTablet ? -2 : -8; // Shift left by percentage
+
+      // Position from top with fixed spacing
+      const rowHeight = 30;
+      const startFromTop = 0;
+      const baseTop = startFromTop + row * rowHeight;
+
+      const baseLeft =
+        gridLeft + col * cellWidth + cellWidth / 2 + horizontalOffset;
+
+      // Smaller random variations
+      const randomX = (Math.random() - 0.5) * 1;
+      const randomY = (Math.random() - 0.5) * 1;
+      const rotate = (Math.random() - 0.5) * 3;
+
+      return {
+        top: `${baseTop + randomY}%`,
+        left: `${baseLeft + randomX}%`,
+        transform: `rotate(${rotate}deg) translate3d(-50%, -50%, 0)`,
+        willChange: "transform, opacity",
+      };
+    },
+    [windowWidth, filteredAchievements.length]
+  );
 
   const handleSelectCategory = useCallback(
     (category: string) => {
@@ -108,6 +129,21 @@ export default function InteractiveHomeClient({
   const handleAchievementClick = useCallback((achievement: Achievement) => {
     setSelectedAchievement(achievement);
   }, []);
+
+  // Slower animation config
+  const staggerDuration = 0.05; // Increased from 0.03
+  const animationConfig = {
+    initial: { opacity: 0, y: 50, scale: 0.8 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, scale: 0.8 },
+    transition: {
+      type: "spring",
+      stiffness: 200, // Reduced from 300
+      damping: 25, // Adjusted for smoother motion
+      mass: 1,
+      duration: 0.6, // Increased from 0.4
+    },
+  };
 
   return (
     <>
@@ -180,7 +216,7 @@ export default function InteractiveHomeClient({
               </div>
               {/* For medium and larger screens */}
               <div className="hidden sm:block relative w-full min-h-[calc(100vh-140px)]">
-                <AnimatePresence mode="popLayout">
+                <AnimatePresence mode="wait">
                   {showContent && !isContentFadingOut && (
                     <motion.div
                       key={selectedCategory}
@@ -188,43 +224,20 @@ export default function InteractiveHomeClient({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       className="relative w-full min-h-[calc(100vh-140px)]"
+                      style={{ willChange: "opacity" }}
                     >
                       {filteredAchievements.map((achievement, index) => {
                         const position = calculatePosition(index);
                         return position ? (
                           <motion.div
                             key={achievement.id}
-                            initial={
-                              isReturning
-                                ? {
-                                    opacity: 1,
-                                    scale: 1,
-                                    y: "-50%",
-                                    x: "-50%",
-                                  }
-                                : {
-                                    opacity: 0,
-                                    y: 50,
-                                    scale: 0.8,
-                                  }
-                            }
-                            animate={{
-                              opacity: 1,
-                              scale: 1,
-                              y: "-50%",
-                              x: "-50%",
-                            }}
+                            {...animationConfig}
                             transition={{
-                              duration: isReturning ? 0 : 0.5,
-                              delay: isReturning ? 0 : index * 0.05,
+                              ...animationConfig.transition,
+                              delay: isReturning ? 0 : index * staggerDuration,
                             }}
                             className="absolute transform"
-                            style={{
-                              top: position.top,
-                              left: position.left,
-                              rotate: position.rotate,
-                              zIndex: 10,
-                            }}
+                            style={position}
                           >
                             <PolaroidCard
                               achievement={achievement}
