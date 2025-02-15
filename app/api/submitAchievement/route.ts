@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Binary } from 'mongodb';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import {EmailService} from '@/app/utils/generateOTP';
 
 // MongoDB connection
 if (!process.env.mongoURL) {
@@ -44,12 +43,12 @@ export async function POST(req: NextRequest) {
 
         // Create the achievement document
         const achievement = {
-            fullName: formData.get('fullName'),
+            fullName: formData.get('fullName') as string,
             registrationNumber: formData.get('registrationNumber'),
             mobileNumber: formData.get('mobileNumber'),
             achievementCategory: formData.get('achievementCategory'),
             professorName: formData.get('professorName'),
-            professorEmail: formData.get('professorEmail'),
+            professorEmail: formData.get('professorEmail') as string,
             userImage: {
                 data: new Binary(Buffer.from(userImageArrayBuffer)),
                 contentType: userImage.type
@@ -89,6 +88,17 @@ export async function POST(req: NextRequest) {
 
         // Insert the achievement
         const result = await collection.insertOne(achievement);
+
+        EmailService.sendEmail(achievement.professorEmail, achievement.fullName,
+            //HTML
+            `<h1>Dear ${achievement.professorName},</h1>
+            <p>One of your students, ${achievement.fullName}, has submitted an achievement for approval. Please review the details and provide your feedback.</p>
+            <p><strong>Registration Number:</strong> ${achievement.registrationNumber}</p>
+            <p><strong>Achievement Category:</strong> ${achievement.achievementCategory}</p>
+            <p><strong>Submission Date:</strong> ${achievement.submissionDate}</p>
+            <p><strong>Remarks:</strong> ${achievement.remarks}</p>
+            <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/admin">Click here</a> to approve or reject the achievement.</p>
+            <p>Thank you!</p>`);
 
         return NextResponse.json({
             success: true,

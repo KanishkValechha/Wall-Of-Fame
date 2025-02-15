@@ -18,6 +18,17 @@ interface OTPDocument {
   used?: boolean;
 }
 
+export class EmailService{
+  static async sendEmail(email: string, subject: string, html: string): Promise<void> {
+    await resend.emails.send({
+      from: 'send@vedicvarma.com',
+      to: email,
+      subject,
+      html
+});
+  }
+}
+
 export class OTPService {
   private static generateCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -52,7 +63,7 @@ export class OTPService {
 
       // Send email
       await resend.emails.send({
-        from: 'onboarding@resend.dev',
+        from: 'send@vedicvarma.com',
         to: email,
         subject: 'Your Verification Code',
         html: `
