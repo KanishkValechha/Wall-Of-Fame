@@ -14,8 +14,9 @@ import { Button } from "@/components/ui/button";
 import { categories } from "../data/achievements";
 import { Search, Filter, Check, X, MessageCircle } from "lucide-react";
 import { RemarksModal } from "./RemarksModal";
+import { StudentDetailsModal } from "./StudentDetailsModal";
 
-// Move mock data outside component
+// Update the mock data to include all fields
 const generateMockSubmissions = () =>
   Array(10)
     .fill(null)
@@ -23,11 +24,18 @@ const generateMockSubmissions = () =>
       id: i + 1,
       name: `Student ${i + 1}`,
       regNo: `2023BCS${1000 + i}`,
+      mobileNumber: `+91 98765${43210 + i}`,
       category: categories[i % (categories.length - 1)],
       professorName: `Prof. Smith`,
+      professorEmail: `prof.smith${i + 1}@university.edu`,
       submissionDate: new Date(2024, 0, i + 1).toLocaleDateString(),
       status: "pending",
+      remarks: `This is a sample remark for student ${
+        i + 1
+      }'s achievement submission.`,
       proofUrl: "#",
+      userImage:
+        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2788&auto=format&fit=crop",
     }));
 
 interface Submission {
@@ -51,6 +59,9 @@ export default function DashboardClient() {
     isOpen: false,
     submissionId: null as number | null,
   });
+  const [selectedStudent, setSelectedStudent] = useState<Submission | null>(
+    null
+  );
 
   // Initialize state after component mounts to avoid hydration mismatch
   useEffect(() => {
@@ -64,6 +75,17 @@ export default function DashboardClient() {
         sub.id === submissionId ? { ...sub, status } : sub
       )
     );
+    // Close the modal after status change
+    setSelectedStudent(null);
+  };
+
+  const handleOpenRemarks = (submissionId: number) => {
+    setRemarksModal({
+      isOpen: true,
+      submissionId: submissionId,
+    });
+    // Optionally close the details modal
+    setSelectedStudent(null);
   };
 
   const filteredSubmissions = submissions.filter((sub) => {
@@ -165,7 +187,8 @@ export default function DashboardClient() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="hover:bg-black/5 transition-colors"
+                        className="hover:bg-black/5 transition-colors cursor-pointer"
+                        onClick={() => setSelectedStudent(submission)}
                       >
                         <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">
@@ -201,9 +224,10 @@ export default function DashboardClient() {
                             size="sm"
                             variant="ghost"
                             className="hover:bg-green-100 hover:text-green-800"
-                            onClick={() =>
-                              handleStatusChange(submission.id, "approved")
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(submission.id, "approved");
+                            }}
                           >
                             <Check className="w-4 h-4" />
                           </Button>
@@ -211,9 +235,10 @@ export default function DashboardClient() {
                             size="sm"
                             variant="ghost"
                             className="hover:bg-red-100 hover:text-red-800"
-                            onClick={() =>
-                              handleStatusChange(submission.id, "rejected")
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(submission.id, "rejected");
+                            }}
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -221,12 +246,13 @@ export default function DashboardClient() {
                             size="sm"
                             variant="ghost"
                             className="hover:bg-blue-100 hover:text-blue-800"
-                            onClick={() =>
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setRemarksModal({
                                 isOpen: true,
                                 submissionId: submission.id as number,
-                              })
-                            }
+                              });
+                            }}
                           >
                             <MessageCircle className="w-4 h-4" />
                           </Button>
@@ -240,6 +266,14 @@ export default function DashboardClient() {
           </div>
         </motion.div>
       </div>
+
+      <StudentDetailsModal
+        isOpen={selectedStudent !== null}
+        onClose={() => setSelectedStudent(null)}
+        student={selectedStudent}
+        onStatusChange={handleStatusChange}
+        onOpenRemarks={handleOpenRemarks}
+      />
 
       <RemarksModal
         isOpen={remarksModal.isOpen}
