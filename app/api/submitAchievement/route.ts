@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Binary } from 'mongodb';
-import {EmailService} from '@/app/utils/generateOTP';
+import {EmailService} from '@/app/utils/EmailServices';
 
 // MongoDB connection
 if (!process.env.mongoURL) {

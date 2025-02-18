@@ -8,21 +8,62 @@ interface RemarksModalProps {
   isOpen: boolean;
   onClose: () => void;
   submissionId: number | null;
+  studentMail: string | null;
+  studentName: string;
+  studentPhone: string;
+  onSendRemark: (submissionId: number, remark: string) => void;
 }
 
 export function RemarksModal({
   isOpen,
   onClose,
   submissionId,
+  studentMail,
+  studentName,
+  studentPhone,
+  onSendRemark,
 }: RemarksModalProps) {
   const [remarks, setRemarks] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle remarks submission
-    console.log({ submissionId, remarks });
-    onClose();
+  const handleSend = async () => {
+    if (submissionId !== null) {
+      if (!studentMail) {
+        setError(`Student email not found. Please contact ${studentName} at ${studentPhone}`);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/sendMail', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: studentMail,
+            subject: 'New Remark',
+            html: remarks,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to send email');
+        }
+
+        onSendRemark(submissionId, remarks);
+        handleClose();
+      } catch (error : any) {
+        console.error('Error sending remark:', error);
+        setError(error.message || 'Failed to send email');
+      }
+    }
+  };
+
+  const handleClose = () => {
     setRemarks("");
+    setError(null);
+    onClose();
   };
 
   return (
@@ -34,7 +75,7 @@ export function RemarksModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-[100]"
-            onClick={onClose}
+            onClick={handleClose}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -45,12 +86,12 @@ export function RemarksModal({
             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-display">Add Remarks</h2>
-                <Button variant="ghost" size="icon" onClick={onClose}>
+                <Button variant="ghost" size="icon" onClick={handleClose}>
                   <X className="w-4 h-4" />
                 </Button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
                 <Textarea
                   placeholder="Enter your remarks here..."
                   value={remarks}
@@ -58,11 +99,15 @@ export function RemarksModal({
                   className="min-h-[150px]"
                 />
 
+                {error && <p className="text-red-500">{error}</p>}
+
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" type="button" onClick={onClose}>
+                  <Button variant="outline" type="button" onClick={handleClose}>
                     Cancel
                   </Button>
-                  <Button type="submit">Submit Remarks</Button>
+                  <Button type="button" onClick={handleSend}>
+                    Send Remark
+                  </Button>
                 </div>
               </form>
             </div>

@@ -1,6 +1,6 @@
 // Route to verify OTP
 import { NextRequest, NextResponse } from 'next/server';
-import { OTPService, isValidEmail } from '@/app/utils/generateOTP';
+import { OTPService, isValidEmail } from '@/app/utils/EmailServices';
 
 export async function PUT(req: NextRequest) {
     try {

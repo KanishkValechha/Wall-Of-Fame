@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { OTPService, isValidEmail } from '@/app/utils/generateOTP';
+import { OTPService, isValidEmail } from '@/app/utils/EmailServices';
 
 // Route to generate and send OTP
 export async function POST(req: NextRequest) {

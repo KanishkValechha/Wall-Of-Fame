@@ -2,13 +2,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { X, Check, MessageCircle } from "lucide-react";
 import Image from "next/image";
+import { useState, useEffect, useRef } from 'react';
+import { Input } from "@/components/ui/input";
 
 interface StudentDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   student: any | null;
-  onStatusChange: (id: number, status: string) => void;
-  onOpenRemarks: (id: number) => void;
+  onStatusChange: (id: number, status: string, description: string) => void;
+  onOpenRemarks: (id: number, email: string, name: string, mobile: string) => void;
 }
 
 export function StudentDetailsModal({
@@ -18,8 +20,19 @@ export function StudentDetailsModal({
   onStatusChange,
   onOpenRemarks,
 }: StudentDetailsModalProps) {
-  if (!student) return null;
+  const [description, setDescription] = useState('');
+  const descriptionInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (isOpen && student) {
+      setDescription(student.description || '');
+      if (descriptionInputRef.current) {
+        descriptionInputRef.current.focus();
+      }
+    }
+  }, [isOpen, student]);
+
+  if (!student) return null;
   return (
     <AnimatePresence>
       {isOpen && (
@@ -45,12 +58,23 @@ export function StudentDetailsModal({
                 </Button>
               </div>
 
+              {/* Description Input */}
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">Description</h3>
+                <Input
+                  ref={descriptionInputRef}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Add a description"
+                />
+              </div>
+
               {/* Status Actions Bar */}
               <div className="bg-gray-50 p-4 rounded-lg mb-6 flex justify-center gap-4">
                 <Button
                   size="lg"
                   className="bg-green-600 hover:bg-green-700 text-white px-8"
-                  onClick={() => onStatusChange(student.id, "approved")}
+                  onClick={() => onStatusChange(student._id, "approved", description)}
                 >
                   <Check className="w-5 h-5 mr-2" />
                   Approve
@@ -59,7 +83,7 @@ export function StudentDetailsModal({
                   size="lg"
                   variant="destructive"
                   className="px-8"
-                  onClick={() => onStatusChange(student.id, "rejected")}
+                  onClick={() => onStatusChange(student._id, "rejected", description)}
                 >
                   <X className="w-5 h-5 mr-2" />
                   Reject
@@ -68,7 +92,7 @@ export function StudentDetailsModal({
                   size="lg"
                   variant="outline"
                   className="px-8"
-                  onClick={() => onOpenRemarks(student.id)}
+                  onClick={() => onOpenRemarks(student._id, student.studentMail, student.fullName, student.mobileNumber)}
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />
                   Add Remarks
@@ -79,8 +103,8 @@ export function StudentDetailsModal({
                 <div className="space-y-6">
                   <div className="relative w-full aspect-square rounded-lg overflow-hidden">
                     <Image
-                      src={student.userImage || "/placeholder.png"}
-                      alt={student.name}
+                      src={student.userImage}
+                      alt={student.fullName}
                       fill
                       className="object-cover"
                     />
@@ -91,17 +115,21 @@ export function StudentDetailsModal({
                     <div className="space-y-2">
                       <p>
                         <span className="text-gray-500">Name:</span>{" "}
-                        {student.name}
+                        {student.fullName}
                       </p>
                       <p>
                         <span className="text-gray-500">
                           Registration Number:
                         </span>{" "}
-                        {student.regNo}
+                        {student.registrationNumber}
                       </p>
                       <p>
                         <span className="text-gray-500">Mobile:</span>{" "}
                         {student.mobileNumber}
+                      </p>
+                      <p>
+                        <span className="text-gray-500">Mail:</span>{" "}
+                        {student.studentMail}
                       </p>
                     </div>
                   </div>
@@ -113,26 +141,29 @@ export function StudentDetailsModal({
                     <div className="space-y-2">
                       <p>
                         <span className="text-gray-500">Category:</span>{" "}
-                        {student.category}
+                        {student.achievementCategory}
                       </p>
                       <p>
                         <span className="text-gray-500">Submission Date:</span>{" "}
-                        {student.submissionDate}
+                        {new Date(student.submissionDate).toLocaleDateString()}
                       </p>
                       <p>
                         <span className="text-gray-500">Status:</span>
                         <span
                           className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                           ${
-                            student.status === "approved"
+                            student.approved !== null && student.approved.getFullYear() !== 2000
                               ? "bg-green-100 text-green-800"
-                              : student.status === "rejected"
+                              : student.approved !== null && student.approved.getFullYear() === 2000
                               ? "bg-red-100 text-red-800"
                               : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
-                          {student.status.charAt(0).toUpperCase() +
-                            student.status.slice(1)}
+                          {student.approved !== null && student.approved.getFullYear() !== 2000
+                            ? "Approved"
+                            : student.approved !== null && student.approved.getFullYear() === 2000
+                            ? "Rejected"
+                            : "Pending"}
                         </span>
                       </p>
                     </div>

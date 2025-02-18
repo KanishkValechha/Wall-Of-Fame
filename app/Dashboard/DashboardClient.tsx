@@ -15,49 +15,74 @@ import { categories } from "../data/achievements";
 import { Search, Filter, Check, X, MessageCircle } from "lucide-react";
 import { RemarksModal } from "./RemarksModal";
 import { StudentDetailsModal } from "./StudentDetailsModal";
-
-// Update the mock data to include all fields
-const generateMockSubmissions = () =>
-  Array(10)
-    .fill(null)
-    .map((_, i) => ({
-      id: i + 1,
-      fullName: `Student ${i + 1}`,
-      regNo: `2023BCS${1000 + i}`,
-      mobileNumber: `+91 98765${43210 + i}`,
-      category: categories[i % (categories.length - 1)],
-      professorName: `Prof. Smith`,
-      professorEmail: `prof.smith${i + 1}@university.edu`,
-      submissionDate: new Date(2024, 0, i + 1).toLocaleDateString(),
-      approved: null,
-      remarks: `This is a sample remark for student ${
-        i + 1
-      }'s achievement submission.`,
-      proofUrl: "#",
-      userImage:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2788&auto=format&fit=crop",
-    }));
+import { formatDistanceToNow } from 'date-fns';
 
 const fetchAchievements = async () => {
-  const response = await fetch('/api/achievements?professorEmail=vedic20052005@gmail.com', {
+  const response = await fetch('/api/achievements?professorEmail=vedic20052005@gmail.com&blacklist=userImage,certificateProof', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     }
   });
   const data = await response.json();
-  return data.achievements;
+  return data.achievements.map((achievement: any) => ({
+    ...achievement,
+    approved: achievement.approved ? new Date(achievement.approved) : null,
+    studentMail: achievement.studentMail || null,
+  }));
+};
+
+const fetchStudentDetails = async (submissionId: number,name: string) => {
+  const response = await fetch(`/api/achievements?whitelist=userImage,certificateProof&_id=${submissionId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+  const data = await response.json();
+  if (!data.achievements[0].userImage) {
+    throw new Error("User image not found");
+  }
+  return data.achievements[0];
+};
+
+const updateAchievement = async (submissionId: number, approval: Date | null, description: string, student: any, silent: boolean) => {
+  const response = await fetch('/api/achievements', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ _id: submissionId, approval, description }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to update achievement');
+  }
+  if (!silent && student.studentMail && data && data.message && data.message === 'Achievement updated successfully') {
+    //SEND MAIL TO USER
+    const response = await fetch('/api/sendMail',{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({email: student.studentMail, subject: 'Achievement Status', html: `Your achievement has been ${approval === null ? 'rejected' : 'approved'}.`}),
+    });
+  return data;
+}
 };
 
 interface Submission {
-  id: number;
+  _id: number;
   fullName: string;
-  regNo: string;
-  category: string;
+  registrationNumber: string;
+  mobileNumber: string;
+  achievementCategory: string;
   professorName: string;
-  submissionDate: string;
+  professorEmail: string;
+  submissionDate: Date;
   approved: Date | null;
   proofUrl: string;
+  studentMail: string | null;
 }
 
 export default function DashboardClient() {
@@ -69,46 +94,116 @@ export default function DashboardClient() {
   const [remarksModal, setRemarksModal] = useState({
     isOpen: false,
     submissionId: null as number | null,
+    studentMail: null as string | null,
+    studentName: '',
+    studentPhone: '',
   });
   const [selectedStudent, setSelectedStudent] = useState<Submission | null>(
     null
   );
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Initialize state after component mounts to avoid hydration mismatch
   useEffect(() => {
-    const loadAchievements = async () => {
+const loadAchievements = async () => {
       const achievements = await fetchAchievements();
-      setSubmissions(achievements);
-      setIsLoaded(true);
-    };
+    setSubmissions(achievements);
+    setIsLoaded(true);
+};
     loadAchievements();
   }, []);
 
-  const handleStatusChange = (submissionId: number, status: Date | null) => {
-    setSubmissions(
-      submissions.map((sub) =>
-        sub.id === submissionId ? { ...sub, approved: status } : sub
-      )
-    );
+  const handleStatusChange = async (submissionId: number, status: string, description: string) => {
+    let approval: Date | null;
+    if (status === "approved") {
+      approval = new Date();
+    } else if (status === "rejected") {
+      approval = new Date(2000, 0, 1);
+    } else {
+      approval = null;
+    }
+  
+    try {
+      await updateAchievement(submissionId, approval, description, selectedStudent,false);
+      setSubmissions(
+        submissions.map((sub) =>
+          sub._id === submissionId ? { ...sub, approved: approval, description } : sub
+        )
+      );
+    } catch (error: any) {
+      setError(error.message);
+    }
+  
     // Close the modal after status change
     setSelectedStudent(null);
   };
 
-  const handleOpenRemarks = (submissionId: number) => {
+  const handleOpenRemarks = (submissionId: number, studentMail: string | null, studentName: string, studentPhone: string) => {
     setRemarksModal({
       isOpen: true,
       submissionId: submissionId,
+      studentMail: studentMail,
+      studentName: studentName,
+      studentPhone: studentPhone,
     });
     // Optionally close the details modal
     setSelectedStudent(null);
   };
 
+  const handleCloseRemarks = () => {
+    setRemarksModal({
+      isOpen: false,
+      submissionId: null,
+      studentMail: null,
+      studentName: '',
+      studentPhone: '',
+    });
+  };
+
+  const handleStudentClick = async (submissionId: number,approval:string, description: string) => {
+    try {
+      const student = submissions.find(sub => sub._id === submissionId);
+      if (!student) return;
+      await updateAchievement(submissionId, approval === "approved" ? new Date() : new Date(2000, 0, 1), description, student,true);
+      setSubmissions(
+        submissions.map((sub) =>
+          sub._id === submissionId ? { ...sub, approved: approval === "approved" ? new Date() : new Date(2000, 0, 1) } : sub
+        )
+      );
+    } catch (error: any) {
+      setError(error.message);
+    }
+  }
+
+      // const studentDetails = await fetchStudentDetails(submissionId);
+      // setSelectedStudent({ ...submissions.find(sub => sub._id === submissionId), ...studentDetails });
+      // Optionally, you can add logic to highlight the description field
+      // For example, you can set a state to control the highlight
+  //   } catch (err : any) {
+  //     setError(err.message);
+  //   }
+  // };
+
+  const handleSendRemark = async (submissionId: number, remark: string) => {
+    const submission = submissions.find(sub => sub._id === submissionId);
+    if (!submission) return;  
+    try {
+      // Simulate sending remark
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      setSuccessMessage("Remark sent successfully!");
+      setRemarksModal({ isOpen: false, submissionId: null, studentMail: null, studentName: '', studentPhone: '' });
+    } catch (error:any) {
+      setError(error.message);
+    }
+  };
+
   const filteredSubmissions = submissions.filter((sub) => {
     const matchesSearch =
       sub.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.regNo.toLowerCase().includes(searchQuery.toLowerCase());
+      sub.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory =
-      selectedCategory === "all" || sub.category === selectedCategory;
+      selectedCategory === "all" || sub.achievementCategory === selectedCategory;
     const matchesStatus =
       selectedStatus === "all" ||
       (selectedStatus === "approved" && sub.approved !== null) ||
@@ -199,38 +294,47 @@ export default function DashboardClient() {
                   <AnimatePresence>
                     {filteredSubmissions.map((submission) => (
                       <motion.tr
-                        key={submission.id}
+                        key={submission._id}
                         layout
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="hover:bg-black/5 transition-colors cursor-pointer"
-                        onClick={() => setSelectedStudent(submission)}
+                        onClick={async () => {
+                          const studentDetails = await fetchStudentDetails(submission._id,submission.fullName);
+                          setSelectedStudent({ ...submission, ...studentDetails });
+                        }}
                       >
                         <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">
                             {submission.fullName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {submission.regNo}
+                            {submission.registrationNumber}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
-                          {submission.category}
+                          {submission.achievementCategory}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
-                          {submission.submissionDate}
+                          {formatDistanceToNow(new Date(submission.submissionDate), { addSuffix: true })}
                         </td>
                         <td className="px-6 py-4">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             ${
-                              submission.approved !== null
+                              submission.approved !== null && submission.approved.getFullYear() !== 2000
                                 ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                                                            }`}
+                                : submission.approved !== null && submission.approved.getFullYear() === 2000
+                                ? "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
                           >
-                            {submission.approved !== null ? "Approved" : "Rejected"}
+                            {submission.approved !== null && submission.approved.getFullYear() !== 2000
+                              ? "Approved"
+                              : submission.approved !== null && submission.approved.getFullYear() === 2000
+                              ? "Rejected"
+                              : "Pending"}
                           </span>
                         </td>
                         <td className="px-6 py-4 flex space-x-2">
@@ -240,7 +344,7 @@ export default function DashboardClient() {
                             className="hover:bg-green-100 hover:text-green-800"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStatusChange(submission.id, new Date());
+                              handleStudentClick(submission._id,"approved","");
                             }}
                           >
                             <Check className="w-4 h-4" />
@@ -251,7 +355,7 @@ export default function DashboardClient() {
                             className="hover:bg-red-100 hover:text-red-800"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStatusChange(submission.id, null);
+                              handleStudentClick(submission._id,"rejected","");
                             }}
                           >
                             <X className="w-4 h-4" />
@@ -264,7 +368,10 @@ export default function DashboardClient() {
                               e.stopPropagation();
                               setRemarksModal({
                                 isOpen: true,
-                                submissionId: submission.id as number,
+                                submissionId: submission._id as number,
+                                studentMail: submission.studentMail,
+                                studentName: submission.fullName,
+                                studentPhone: submission.mobileNumber,
                               });
                             }}
                           >
@@ -281,6 +388,34 @@ export default function DashboardClient() {
         </motion.div>
       </div>
 
+      {error && (
+        <div className="fixed inset-0 flex items-center justify-center z-[101] p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-h-[90vh] overflow-y-auto w-full max-w-4xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-display">Error</h2>
+              <Button variant="ghost" size="icon" onClick={() => setError(null)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-red-500">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="fixed inset-0 flex items-center justify-center z-[101] p-4">
+          <div className="bg-green-100 rounded-lg shadow-xl p-6 max-h-[90vh] overflow-y-auto w-full max-w-4xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-display text-green-800">Success</h2>
+              <Button variant="ghost" size="icon" onClick={() => setSuccessMessage(null)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-green-800">{successMessage}</p>
+          </div>
+        </div>
+      )}
+
       <StudentDetailsModal
         isOpen={selectedStudent !== null}
         onClose={() => setSelectedStudent(null)}
@@ -291,8 +426,12 @@ export default function DashboardClient() {
 
       <RemarksModal
         isOpen={remarksModal.isOpen}
-        onClose={() => setRemarksModal({ isOpen: false, submissionId: null })}
+        onClose={handleCloseRemarks}
         submissionId={remarksModal.submissionId}
+        studentMail={remarksModal.studentMail}
+        studentName={remarksModal.studentName}
+        studentPhone={remarksModal.studentPhone}
+        onSendRemark={handleSendRemark}
       />
     </div>
   );
