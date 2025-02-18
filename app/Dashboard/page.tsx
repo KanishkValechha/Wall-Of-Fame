@@ -15,19 +15,6 @@ import { categories } from "../data/achievements";
 import { Search, Filter, Check, X, MessageCircle } from "lucide-react";
 import { RemarksModal } from "./RemarksModal";
 
-// Temporary mock data
-const mockSubmissions = Array(10)
-  .fill(null)
-  .map((_, i) => ({
-    id: i + 1,
-    name: `Student ${i + 1}`,
-    regNo: `2023BCS${1000 + i}`,
-    category: categories[i % (categories.length - 1)],
-    professorName: `Prof. Smith`,
-    submissionDate: new Date(2024, 0, i + 1).toLocaleDateString(),
-    status: "pending",
-    proofUrl: "#",
-  }));
 
 // export default function DashboardClient() {
 //   const [submissions, setSubmissions] = useState(mockSubmissions);

@@ -22,6 +22,7 @@ export default function SubmitPage() {
     fullName: "",
     registrationNumber: "",
     mobileNumber: "",
+    studentMail: "",
     achievementCategory: "",
     professorName: "",
     professorEmail: "",
@@ -65,6 +66,7 @@ export default function SubmitPage() {
           fullName: "",
           registrationNumber: "",
           mobileNumber: "",
+          studentMail: "",
           achievementCategory: "",
           professorName: "",
           professorEmail: "",
@@ -131,6 +133,17 @@ export default function SubmitPage() {
               required
               value={formData.mobileNumber}
               onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="studentMail">Outlook Mail</Label>
+            <Input
+              id="studentMail"
+              type="email"
+              required
+              value={formData.studentMail}
+              onChange={(e) => setFormData({ ...formData, studentMail: e.target.value })}
             />
           </div>
 

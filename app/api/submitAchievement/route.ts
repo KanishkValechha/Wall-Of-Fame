@@ -46,20 +46,24 @@ export async function POST(req: NextRequest) {
             fullName: formData.get('fullName') as string,
             registrationNumber: formData.get('registrationNumber'),
             mobileNumber: formData.get('mobileNumber'),
+            studentMail: formData.get('studentMail') as string,
             achievementCategory: formData.get('achievementCategory'),
             professorName: formData.get('professorName'),
             professorEmail: formData.get('professorEmail') as string,
             userImage: {
-                data: new Binary(Buffer.from(userImageArrayBuffer)),
+                data: new Binary(new Uint8Array(certificateArrayBuffer)),
                 contentType: userImage.type
             },
             certificateProof: {
-                data: new Binary(Buffer.from(certificateArrayBuffer)),
+                data: new Binary(new Uint8Array(certificateArrayBuffer)),
                 contentType: certificateProof.type
             },
             submissionDate: new Date(),
             remarks: formData.get('remarks')|| '',
-            approved: null
+            approved: null,
+            overAllTop10: false,
+            archived: false,
+            description: ''
         };
 
         // Validate required fields
@@ -89,11 +93,12 @@ export async function POST(req: NextRequest) {
         // Insert the achievement
         const result = await collection.insertOne(achievement);
 
-        EmailService.sendEmail(achievement.professorEmail, achievement.fullName,
+        EmailService.sendEmail(achievement.professorEmail, `Achievement approval for ${achievement.fullName}`,
             //HTML
             `<h1>Dear ${achievement.professorName},</h1>
             <p>One of your students, ${achievement.fullName}, has submitted an achievement for approval. Please review the details and provide your feedback.</p>
             <p><strong>Registration Number:</strong> ${achievement.registrationNumber}</p>
+            <p><strong>Phone Number:</strong> +91 ${achievement.mobileNumber}</p>
             <p><strong>Achievement Category:</strong> ${achievement.achievementCategory}</p>
             <p><strong>Submission Date:</strong> ${achievement.submissionDate}</p>
             <p><strong>Remarks:</strong> ${achievement.remarks}</p>

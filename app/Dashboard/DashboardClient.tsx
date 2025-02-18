@@ -22,14 +22,14 @@ const generateMockSubmissions = () =>
     .fill(null)
     .map((_, i) => ({
       id: i + 1,
-      name: `Student ${i + 1}`,
+      fullName: `Student ${i + 1}`,
       regNo: `2023BCS${1000 + i}`,
       mobileNumber: `+91 98765${43210 + i}`,
       category: categories[i % (categories.length - 1)],
       professorName: `Prof. Smith`,
       professorEmail: `prof.smith${i + 1}@university.edu`,
       submissionDate: new Date(2024, 0, i + 1).toLocaleDateString(),
-      status: "pending",
+      approved: null,
       remarks: `This is a sample remark for student ${
         i + 1
       }'s achievement submission.`,
@@ -38,14 +38,25 @@ const generateMockSubmissions = () =>
         "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2788&auto=format&fit=crop",
     }));
 
+const fetchAchievements = async () => {
+  const response = await fetch('/api/achievements?professorEmail=vedic20052005@gmail.com', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+  const data = await response.json();
+  return data.achievements;
+};
+
 interface Submission {
   id: number;
-  name: string;
+  fullName: string;
   regNo: string;
   category: string;
   professorName: string;
   submissionDate: string;
-  status: string;
+  approved: Date | null;
   proofUrl: string;
 }
 
@@ -65,14 +76,18 @@ export default function DashboardClient() {
 
   // Initialize state after component mounts to avoid hydration mismatch
   useEffect(() => {
-    setSubmissions(generateMockSubmissions());
-    setIsLoaded(true);
+    const loadAchievements = async () => {
+      const achievements = await fetchAchievements();
+      setSubmissions(achievements);
+      setIsLoaded(true);
+    };
+    loadAchievements();
   }, []);
 
-  const handleStatusChange = (submissionId: number, status: string) => {
+  const handleStatusChange = (submissionId: number, status: Date | null) => {
     setSubmissions(
       submissions.map((sub) =>
-        sub.id === submissionId ? { ...sub, status } : sub
+        sub.id === submissionId ? { ...sub, approved: status } : sub
       )
     );
     // Close the modal after status change
@@ -90,12 +105,14 @@ export default function DashboardClient() {
 
   const filteredSubmissions = submissions.filter((sub) => {
     const matchesSearch =
-      sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sub.regNo.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory =
       selectedCategory === "all" || sub.category === selectedCategory;
     const matchesStatus =
-      selectedStatus === "all" || sub.status === selectedStatus;
+      selectedStatus === "all" ||
+      (selectedStatus === "approved" && sub.approved !== null) ||
+      (selectedStatus === "rejected" && sub.approved === null);
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
@@ -192,7 +209,7 @@ export default function DashboardClient() {
                       >
                         <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {submission.name}
+                            {submission.fullName}
                           </div>
                           <div className="text-sm text-gray-500">
                             {submission.regNo}
@@ -208,15 +225,12 @@ export default function DashboardClient() {
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             ${
-                              submission.status === "approved"
+                              submission.approved !== null
                                 ? "bg-green-100 text-green-800"
-                                : submission.status === "rejected"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
+                                : "bg-red-100 text-red-800"
+                                                            }`}
                           >
-                            {submission.status.charAt(0).toUpperCase() +
-                              submission.status.slice(1)}
+                            {submission.approved !== null ? "Approved" : "Rejected"}
                           </span>
                         </td>
                         <td className="px-6 py-4 flex space-x-2">
@@ -226,7 +240,7 @@ export default function DashboardClient() {
                             className="hover:bg-green-100 hover:text-green-800"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStatusChange(submission.id, "approved");
+                              handleStatusChange(submission.id, new Date());
                             }}
                           >
                             <Check className="w-4 h-4" />
@@ -237,7 +251,7 @@ export default function DashboardClient() {
                             className="hover:bg-red-100 hover:text-red-800"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStatusChange(submission.id, "rejected");
+                              handleStatusChange(submission.id, null);
                             }}
                           >
                             <X className="w-4 h-4" />
