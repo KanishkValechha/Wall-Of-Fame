@@ -280,6 +280,7 @@ export const achievements: Achievement[] = [
 ];
 */
 export const categories = [
+  "Overall TOP 10",
   "Academic Excellence",
   "Research Achievements",
   "Professional Achievements",

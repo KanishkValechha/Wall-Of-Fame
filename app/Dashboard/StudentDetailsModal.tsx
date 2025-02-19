@@ -24,6 +24,23 @@ export function StudentDetailsModal({
   const [description, setDescription] = useState('');
   const [achievementTitle, setAchievementTitle] = useState('');
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    } else {
+      window.removeEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (isOpen && student) {
@@ -32,6 +49,14 @@ export function StudentDetailsModal({
       if (descriptionInputRef.current) {
         descriptionInputRef.current.focus();
       }
+        // Convert user image to base64 URL if it exists
+        if (student.userImage?.data) {
+          student.imageUrl = `data:${student.userImage.contentType};base64,${student.userImage.data}`;
+        }
+        // Convert certificate to base64 URL if it exists
+        if (student.certificateProof?.data) {
+          student.certificateUrl = `data:${student.certificateProof.contentType};base64,${student.certificateProof.data}`;
+        }
     }
   }, [isOpen, student]);
 
@@ -118,12 +143,12 @@ export function StudentDetailsModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-6">
                   <div className="relative w-full aspect-square rounded-lg overflow-hidden">
-                    <Image
-                      src={student.userImage.data}
+                    {student.imageUrl && <Image
+                      src={student.imageUrl}
                       alt={student.fullName}
                       fill
                       className="object-cover"
-                    />
+                    />}
                   </div>
 
                   <div className="bg-gray-50 p-4 rounded-lg">
@@ -209,7 +234,7 @@ export function StudentDetailsModal({
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="font-semibold mb-2">Certificate/Proof</h3>
                     <a
-                      href={student.certificateProof.data}
+                      href={student.certificateUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"

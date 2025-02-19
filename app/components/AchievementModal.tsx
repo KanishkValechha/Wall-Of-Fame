@@ -1,7 +1,7 @@
 "use client";
 
-// import { Achievement } from "../data/achievements";
-import {Achievement} from "@/app/types/achievements";
+import { useEffect } from "react";
+import { Achievement } from "@/app/types/achievements";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
@@ -16,6 +16,24 @@ export default function AchievementModal({
   isOpen,
   onClose,
 }: AchievementModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    } else {
+      window.removeEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!achievement) return null;
 
   return (
