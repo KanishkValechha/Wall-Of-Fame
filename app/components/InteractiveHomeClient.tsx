@@ -16,29 +16,29 @@ import { teamMembers } from "../data/team";
 import TeamModal from "./TeamModal";
 
 // Import types from your data file
-import { Achievement } from "../data/achievements";
+import {Achievement} from "@/app/types/achievements";
+// import { Achievement } from "../data/achievements";
 
 export interface InteractiveHomeClientProps {
-  achievements: Achievement[];
   categories: string[];
   isReturning?: boolean;
 }
 
 export default function InteractiveHomeClient({
-  achievements,
   categories,
   isReturning = false,
 }: InteractiveHomeClientProps) {
   const router = useRouter();
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(
     isReturning ? "Overall TOP 10" : categories[0]
   );
   const [selectedAchievement, setSelectedAchievement] =
     useState<Achievement | null>(null);
   const [windowWidth, setWindowWidth] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const [showContent, setShowContent] = useState(isReturning);
-  const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(!isReturning);
@@ -66,12 +66,44 @@ export default function InteractiveHomeClient({
     }
   }, [isReturning]);
 
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      try {
+        const response = await fetch(`/api/achievements?approved>=2001-01-01&archived=false`);
+        const data = await response.json();
+        if (response.ok) {
+          const achievementsWithImages = data.achievements.map((achievement: Achievement) => {
+            if (achievement.userImage && achievement.userImage.data) {
+              const base64String = Buffer.from(achievement.userImage.data).toString('base64');
+              achievement.imageUrl = `data:image/jpeg;base64,${base64String}`;
+            }
+            if (achievement.certificateProof && achievement.certificateProof.data) {
+              const base64String = Buffer.from(achievement.certificateProof.data).toString('base64');
+              achievement.certificateUrl = `data:application/pdf;base64,${base64String}`;
+            }
+            return achievement;
+          });
+          setAchievements(achievementsWithImages);
+        } else {
+          console.error("Failed to fetch achievements:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching achievements:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAchievements();
+  }, []);
+
   const filteredAchievements = useMemo(() => {
+    if (loading) return [];
     if (selectedCategory === "Overall TOP 10") {
-      return achievements.filter((a) => a.overallTop).slice(0, 15);
+      return achievements.filter((a) => a.overAllTop10).slice(0, 15);
     }
-    return achievements.filter((a) => a.category === selectedCategory);
-  }, [selectedCategory, achievements]);
+    return achievements.filter((a) => a.achievementCategory === selectedCategory);
+  }, [selectedCategory, achievements, loading]);
 
   const calculatePosition = useCallback(
     (index: number) => {
@@ -193,7 +225,7 @@ export default function InteractiveHomeClient({
                       <div className="grid grid-cols-2 gap-4">
                         {filteredAchievements.map((achievement, index) => (
                           <motion.div
-                            key={achievement.id}
+                            key={achievement._id}
                             initial={{ opacity: 0, y: 50 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{
@@ -230,7 +262,7 @@ export default function InteractiveHomeClient({
                         const position = calculatePosition(index);
                         return position ? (
                           <motion.div
-                            key={achievement.id}
+                            key={achievement._id}
                             {...animationConfig}
                             transition={{
                               ...animationConfig.transition,

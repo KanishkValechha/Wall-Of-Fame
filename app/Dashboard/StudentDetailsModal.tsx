@@ -4,13 +4,14 @@ import { X, Check, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
+import { Achievement } from "@/app/types/achievements";
 
 interface StudentDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  student: any | null;
+  student: Achievement | null;
   onStatusChange: (id: number, status: string, description: string) => void;
-  onOpenRemarks: (id: number, email: string, name: string, mobile: string) => void;
+  onOpenRemarks: (id: number, email: string | null, name: string, mobile: string) => void;
 }
 
 export function StudentDetailsModal({
@@ -193,7 +194,7 @@ export function StudentDetailsModal({
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="font-semibold mb-2">Certificate/Proof</h3>
                     <a
-                      href={student.proofUrl}
+                      href={student.certificateProof}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"

@@ -83,9 +83,13 @@ export default function SubmitPage() {
       } else {
         setMessage({ text: "Submission failed. Please try again.", isError: true });
       }
-    } catch (error) {
-      setMessage({ text: "Error submitting form. Check your connection.", isError: true });
-    }
+    } catch (error:any) {
+      console.log(error);
+      if (error.response.status === 400) {
+        setMessage({ text: `Error submitting form.${error.response.data.error}`, isError: true });
+      } else {
+      setMessage({ text: `Error submitting form. Check your connection. ${error}`, isError: true });
+    }}
   };
 
   return (

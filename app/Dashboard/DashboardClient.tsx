@@ -16,6 +16,7 @@ import { Search, Filter, Check, X, MessageCircle } from "lucide-react";
 import { RemarksModal } from "./RemarksModal";
 import { StudentDetailsModal } from "./StudentDetailsModal";
 import { formatDistanceToNow } from 'date-fns';
+import { Achievement } from "@/app/types/achievements"
 
 const fetchAchievements = async () => {
   const response = await fetch('/api/achievements?professorEmail=vedic20052005@gmail.com&blacklist=userImage,certificateProof', {
@@ -71,23 +72,10 @@ const updateAchievement = async (submissionId: number, approval: Date | null, de
 }
 };
 
-interface Submission {
-  _id: number;
-  fullName: string;
-  registrationNumber: string;
-  mobileNumber: string;
-  achievementCategory: string;
-  professorName: string;
-  professorEmail: string;
-  submissionDate: Date;
-  approved: Date | null;
-  proofUrl: string;
-  studentMail: string | null;
-}
 
 export default function DashboardClient() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [submissions, setSubmissions] = useState<Achievement[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -98,7 +86,7 @@ export default function DashboardClient() {
     studentName: '',
     studentPhone: '',
   });
-  const [selectedStudent, setSelectedStudent] = useState<Submission | null>(
+  const [selectedStudent, setSelectedStudent] = useState<Achievement | null>(
     null
   );
   const [error, setError] = useState<string | null>(null);

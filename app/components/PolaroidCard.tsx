@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Achievement } from "../data/achievements";
+import { Achievement } from "@/app/types/achievements";
 import React from "react";
 
 interface PolaroidCardProps {
@@ -32,7 +32,7 @@ function PolaroidCardComponent({ achievement, onClick }: PolaroidCardProps) {
     >
       <motion.div
         className="relative w-full aspect-square mb-5 overflow-hidden"
-        layoutId={`image-container-${achievement.id}`}
+        layoutId={`image-container-${achievement._id}`}
         transition={{
           type: "spring",
           bounce: 0.2,
@@ -41,19 +41,21 @@ function PolaroidCardComponent({ achievement, onClick }: PolaroidCardProps) {
         }}
       >
         <div className="absolute inset-0 border border-black/10 z-10" />
-        <Image
-          src={achievement.image}
-          alt={achievement.name}
-          fill
-          sizes="(max-width: 768px) 140px, (max-width: 1024px) 160px, 180px"
-          className="object-cover"
-          loading="eager" // Change to eager since we're preloading anyway
-          priority={true} // Add priority for first visible images
-        />
+        {achievement.imageUrl && (
+          <Image
+            src={achievement.imageUrl}
+            alt={achievement.fullName}
+            fill
+            sizes="(max-width: 768px) 140px, (max-width: 1024px) 160px, 180px"
+            className="object-cover"
+            loading="eager" // Change to eager since we're preloading anyway
+            priority={true} // Add priority for first visible images
+          />
+        )}
       </motion.div>
       <motion.h3
         className="text-base sm:text-lg font-handwriting text-center truncate px-1 text-black/80"
-        layoutId={`name-${achievement.id}`}
+        layoutId={`name-${achievement._id}`}
         transition={{
           type: "spring",
           bounce: 0.2,
@@ -61,7 +63,7 @@ function PolaroidCardComponent({ achievement, onClick }: PolaroidCardProps) {
           layout: { duration: 0.3 },
         }}
       >
-        {achievement.name}
+        {achievement.fullName}
       </motion.h3>
     </motion.div>
   );
@@ -69,5 +71,5 @@ function PolaroidCardComponent({ achievement, onClick }: PolaroidCardProps) {
 
 // Use React.memo with custom comparison
 export default React.memo(PolaroidCardComponent, (prev, next) => {
-  return prev.achievement.id === next.achievement.id;
+  return prev.achievement._id === next.achievement._id;
 });

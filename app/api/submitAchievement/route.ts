@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Binary } from 'mongodb';
-import {EmailService} from '@/app/utils/EmailServices';
+import { EmailService } from '@/app/utils/EmailServices';
 
 // MongoDB connection
 if (!process.env.mongoURL) {
     throw new Error("Missing MONGO_URL in environment variables");
-  }
-  const uri = process.env.mongoURL as string;
-  const client = new MongoClient(uri);
-  
+}
+const uri = process.env.mongoURL as string;
+const client = new MongoClient(uri);
+
 // Define expected file types
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
 const ALLOWED_CERTIFICATE_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
             professorName: formData.get('professorName'),
             professorEmail: formData.get('professorEmail') as string,
             userImage: {
-                data: new Binary(new Uint8Array(certificateArrayBuffer)),
+                data: new Binary(new Uint8Array(userImageArrayBuffer)),
                 contentType: userImage.type
             },
             certificateProof: {
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
                 contentType: certificateProof.type
             },
             submissionDate: new Date(),
-            remarks: formData.get('remarks')|| '',
+            remarks: formData.get('remarks') || '',
             approved: null,
             overAllTop10: false,
             archived: false,
@@ -83,6 +83,16 @@ export async function POST(req: NextRequest) {
                     { status: 400 }
                 );
             }
+        }
+
+        // Validate mobile number
+        const mobileNumber = formData.get('mobileNumber') as string;
+        const mobileNumberPattern = /^[0-9]{10}$/;
+        if (!mobileNumberPattern.test(mobileNumber)) {
+            return NextResponse.json(
+                { error: 'Invalid mobile number. It must be a valid 10-digit phone number.' },
+                { status: 400 }
+            );
         }
 
         // Connect to MongoDB
@@ -111,8 +121,16 @@ export async function POST(req: NextRequest) {
             documentId: result.insertedId
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error submitting achievement:', error);
+        if (error.name === 'MongoServerError' && error.code === 121) {
+            const validationErrors = error.errInfo.details.schemaRulesNotSatisfied.map((rule: any) => {
+                return rule.propertiesNotSatisfied.map((property: any) => {
+                    return `${property.propertyName}: ${property.description}`;
+                }).join(', ');
+            }).join('; ');
+            return NextResponse.json({ error: `Document failed validation: ${validationErrors}` }, { status: 400 });
+        }
         return NextResponse.json(
             { error: 'Failed to submit achievement' },
             { status: 500 }

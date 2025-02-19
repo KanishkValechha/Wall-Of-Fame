@@ -20,20 +20,23 @@ export async function GET(req: NextRequest) {
             filter.professorEmail = searchParams.get('professorEmail');
         }
         if (searchParams.has('approved')) {
-            filter.approved = searchParams.get('approved') === 'true';
+            const approvedDate = new Date(searchParams.get('approved') as string);
+            if (!isNaN(approvedDate.getTime())) {
+                filter.approved = { $gte: approvedDate };
+            }
         }
-
+        if (searchParams.has('archived')) {
+            filter.archived = searchParams.get('archived') === 'true';
+        }
         if (searchParams.has('_id')) {
             filter._id = new ObjectId(searchParams.get('_id') as string);
         }
-
         if (searchParams.has('whitelist')) {
             const whitelist = searchParams.get('whitelist')?.split(',') || [];
             whitelist.forEach((field) => {
                 projection[field] = 1;
             });
         }
-
         if (searchParams.has('blacklist')) {
             const blacklist = searchParams.get('blacklist')?.split(',') || [];
             blacklist.forEach((field) => {
