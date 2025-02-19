@@ -1,6 +1,7 @@
 "use client";
 
-import { Achievement } from "../data/achievements";
+// import { Achievement } from "../data/achievements";
+import {Achievement} from "@/app/types/achievements";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
@@ -49,7 +50,7 @@ export default function AchievementModal({
 
               <div className="flex flex-col md:grid md:grid-cols-2 max-h-[90vh] overflow-y-auto">
                 <motion.div
-                  layoutId={`image-container-${achievement.id}`}
+                  layoutId={`image-container-${achievement._id}`}
                   transition={{ 
                     type: "spring",
                     bounce: 0.2,
@@ -58,8 +59,8 @@ export default function AchievementModal({
                   className="relative w-full h-[35vh] md:h-[600px] shrink-0"
                 >
                   <Image
-                    src={achievement.image}
-                    alt={achievement.name}
+                    src={achievement.imageUrl}
+                    alt={achievement.fullName}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 50vw"
@@ -77,17 +78,17 @@ export default function AchievementModal({
                   <div className="space-y-4">
                     <div>
                       <motion.h2 
-                        layoutId={`name-${achievement.id}`}
+                        layoutId={`name-${achievement._id}`}
                         className="text-2xl md:text-3xl font-bold mb-2 text-primary"
                       >
-                        {achievement.name}
+                        {achievement.fullName}
                       </motion.h2>
                       <motion.p 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="text-sm md:text-base text-muted-foreground"
                       >
-                        {achievement.category}
+                        {achievement.achievementCategory}
                       </motion.p>
                     </div>
 
@@ -98,7 +99,7 @@ export default function AchievementModal({
                       className="space-y-3"
                     >
                       <h3 className="text-lg md:text-xl font-semibold text-primary">
-                        {achievement.title}
+                        {achievement.achievementTitle}
                       </h3>
                       <p className="text-foreground/80 text-sm md:text-base leading-relaxed">
                         {achievement.description}

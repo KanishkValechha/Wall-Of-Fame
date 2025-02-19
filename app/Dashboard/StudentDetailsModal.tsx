@@ -22,11 +22,13 @@ export function StudentDetailsModal({
   onOpenRemarks,
 }: StudentDetailsModalProps) {
   const [description, setDescription] = useState('');
-  const descriptionInputRef = useRef<HTMLInputElement>(null);
+  const [achievementTitle, setAchievementTitle] = useState('');
+  const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (isOpen && student) {
       setDescription(student.description || '');
+      setAchievementTitle(student.achievementTitle || '');
       if (descriptionInputRef.current) {
         descriptionInputRef.current.focus();
       }
@@ -59,14 +61,27 @@ export function StudentDetailsModal({
                 </Button>
               </div>
 
+              {/* Achievement Title Input */}
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">Achievement Title</h3>
+                <Input
+                  value={achievementTitle}
+                  onChange={(e) => setAchievementTitle(e.target.value)}
+                  placeholder="Add an achievement title"
+                  className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
               {/* Description Input */}
               <div className="mb-4">
                 <h3 className="text-lg font-medium">Description</h3>
-                <Input
+                <textarea
                   ref={descriptionInputRef}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Add a description"
+                  className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={4}
                 />
               </div>
 
@@ -104,7 +119,7 @@ export function StudentDetailsModal({
                 <div className="space-y-6">
                   <div className="relative w-full aspect-square rounded-lg overflow-hidden">
                     <Image
-                      src={student.userImage}
+                      src={student.userImage.data}
                       alt={student.fullName}
                       fill
                       className="object-cover"
@@ -194,7 +209,7 @@ export function StudentDetailsModal({
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="font-semibold mb-2">Certificate/Proof</h3>
                     <a
-                      href={student.certificateProof}
+                      href={student.certificateProof.data}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"
