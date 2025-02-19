@@ -16,7 +16,7 @@ import { teamMembers } from "../data/team";
 import TeamModal from "./TeamModal";
 
 // Import types from your data file
-import {Achievement} from "@/app/types/achievements";
+import { Achievement } from "@/app/types/achievements";
 // import { Achievement } from "../data/achievements";
 
 export interface InteractiveHomeClientProps {
@@ -69,20 +69,24 @@ export default function InteractiveHomeClient({
   useEffect(() => {
     const fetchAchievements = async () => {
       try {
-        const response = await fetch(`/api/achievements?approved>=2001-01-01&archived=false`);
+        const response = await fetch(
+          `/api/achievements?approved>=2001-01-01&archived=false`
+        );
         const data = await response.json();
         if (response.ok) {
-          const achievementsWithImages = data.achievements.map((achievement: Achievement) => {
-            if (achievement.userImage && achievement.userImage.data) {
-              const base64String = Buffer.from(achievement.userImage.data).toString('base64');
-              achievement.imageUrl = `data:image/jpeg;base64,${base64String}`;
+          const achievementsWithImages = data.achievements.map(
+            (achievement: Achievement) => {
+              // Convert user image to base64 URL if it exists
+              if (achievement.userImage?.data) {
+                achievement.imageUrl = `data:${achievement.userImage.contentType};base64,${achievement.userImage.data}`;
+              }
+              // Convert certificate to base64 URL if it exists
+              if (achievement.certificateProof?.data) {
+                achievement.certificateUrl = `data:${achievement.certificateProof.contentType};base64,${achievement.certificateProof.data}`;
+              }
+              return achievement;
             }
-            if (achievement.certificateProof && achievement.certificateProof.data) {
-              const base64String = Buffer.from(achievement.certificateProof.data).toString('base64');
-              achievement.certificateUrl = `data:application/pdf;base64,${base64String}`;
-            }
-            return achievement;
-          });
+          );
           setAchievements(achievementsWithImages);
         } else {
           console.error("Failed to fetch achievements:", data.error);
@@ -102,7 +106,9 @@ export default function InteractiveHomeClient({
     if (selectedCategory === "Overall TOP 10") {
       return achievements.filter((a) => a.overAllTop10).slice(0, 15);
     }
-    return achievements.filter((a) => a.achievementCategory === selectedCategory);
+    return achievements.filter(
+      (a) => a.achievementCategory === selectedCategory
+    );
   }, [selectedCategory, achievements, loading]);
 
   const calculatePosition = useCallback(
