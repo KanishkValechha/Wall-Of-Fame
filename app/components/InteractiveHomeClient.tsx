@@ -125,24 +125,24 @@ export default function InteractiveHomeClient({
       const totalItems = filteredAchievements.length;
       const totalRows = Math.ceil(totalItems / itemsPerRow);
 
-      // Adjust horizontal centering with offset
-      const gridWidth = isTablet ? 75 : 80; // Slightly reduced width
+      // Increased grid width and adjusted spacing
+      const gridWidth = isTablet ? 80 : 85; // Increased from 75/80
       const cellWidth = gridWidth / itemsPerRow;
       const gridLeft = (100 - gridWidth) / 2;
-      const horizontalOffset = isTablet ? -2 : -8; // Shift left by percentage
+      const horizontalOffset = isTablet ? -2 : -4;
 
-      // Position from top with fixed spacing
-      const rowHeight = 30;
+      // Increased row height for more vertical spacing
+      const rowHeight = 35; // Increased from 30
       const startFromTop = 0;
       const baseTop = startFromTop + row * rowHeight;
 
       const baseLeft =
         gridLeft + col * cellWidth + cellWidth / 2 + horizontalOffset;
 
-      // Smaller random variations
-      const randomX = (Math.random() - 0.5) * 1;
-      const randomY = (Math.random() - 0.5) * 1;
-      const rotate = (Math.random() - 0.5) * 3;
+      // Reduced random variations to prevent overlapping
+      const randomX = (Math.random() - 0.5) * 0.8; // Reduced from 1
+      const randomY = (Math.random() - 0.5) * 0.8; // Reduced from 1
+      const rotate = (Math.random() - 0.5) * 2; // Reduced from 3
 
       return {
         top: `${baseTop + randomY}%`,
@@ -216,7 +216,7 @@ export default function InteractiveHomeClient({
               </div>
             </div>
             {/* Adjust the top padding back to original values */}
-            <div className="relative w-full min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] max-w-7xl mx-auto px-4 sm:px-4 pt-[140px] sm:pt-[160px]">
+            <div className="relative w-full min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] max-w-7xl mx-auto px-4 sm:px-4 pt-[140px] md:pt-[140px] ">
               {/* For small screens */}
               <div className="sm:hidden w-full">
                 <AnimatePresence mode="popLayout">
