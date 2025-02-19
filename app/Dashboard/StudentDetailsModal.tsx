@@ -10,8 +10,18 @@ interface StudentDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   student: Achievement | null;
-  onStatusChange: (id: number, status: string, description: string, title:string) => void;
-  onOpenRemarks: (id: number, email: string | null, name: string, mobile: string) => void;
+  onStatusChange: (
+    id: number,
+    status: string,
+    description: string,
+    title: string
+  ) => void;
+  onOpenRemarks: (
+    id: number,
+    email: string | null,
+    name: string,
+    mobile: string
+  ) => void;
 }
 
 export function StudentDetailsModal({
@@ -60,44 +70,53 @@ export function StudentDetailsModal({
     };
   }, [isOpen, onClose]);
 
+  // Set initial values and handle cleanup when modal closes
   useEffect(() => {
-    const loadStudentData = async () => {
-      if (isOpen && student) {
-        try {
-          setDescription(student.description || "");
-          setAchievementTitle(student.achievementTitle || "");
+    if (!isOpen) {
+      setStudentData(null);
+      setDescription("");
+      setAchievementTitle("");
+      setIsLoading(true);
+    }
+  }, [isOpen]);
 
-          const processedStudent = { ...student };
+  // Handle initial data loading
+  useEffect(() => {
+    if (student) {
+      setDescription(student.description || "");
+      setAchievementTitle(student.achievementTitle || "");
+    }
+  }, [student]);
 
-          // Process image and certificate data
-          if (student.userImage?.data) {
-            processedStudent.imageUrl = `data:${student.userImage.contentType};base64,${student.userImage.data}`;
-          }
+  // Handle image and certificate processing
+  useEffect(() => {
+    if (!isOpen || !student) return;
 
-          if (student.certificateProof?.data) {
-            const url = createObjectURL(student.certificateProof);
-            if (url) {
-              processedStudent.certificateUrl = url;
-            }
-          }
+    const processedStudent = { ...student };
 
-          setStudentData(processedStudent);
-          setIsLoading(false);
-        } catch (error) {
-          console.error("Error processing student data:", error);
-          setIsLoading(false);
-        }
+    if (student.userImage?.data) {
+      processedStudent.imageUrl = `data:${student.userImage.contentType};base64,${student.userImage.data}`;
+    }
+
+    if (student.certificateProof?.data) {
+      const url = createObjectURL(student.certificateProof);
+      if (url) {
+        processedStudent.certificateUrl = url;
       }
-    };
+    }
 
-    loadStudentData();
+    setStudentData(processedStudent);
+    setIsLoading(false);
+  }, [isOpen, student]);
 
+  // Handle cleanup of certificate URLs
+  useEffect(() => {
     return () => {
       if (studentData?.certificateUrl) {
         URL.revokeObjectURL(studentData.certificateUrl);
       }
     };
-  }, [isOpen, student]);
+  }, [studentData?.certificateUrl]);
 
   if (!student) return null;
 
@@ -162,7 +181,14 @@ export function StudentDetailsModal({
                     <Button
                       size="lg"
                       className="bg-green-600 hover:bg-green-700 text-white px-8"
-                      onClick={() => onStatusChange(student._id, "approved", description,achievementTitle)}
+                      onClick={() =>
+                        onStatusChange(
+                          student._id,
+                          "approved",
+                          description,
+                          achievementTitle
+                        )
+                      }
                     >
                       <Check className="w-5 h-5 mr-2" />
                       Approve
@@ -171,7 +197,14 @@ export function StudentDetailsModal({
                       size="lg"
                       variant="destructive"
                       className="px-8"
-                      onClick={() => onStatusChange(student._id, "rejected", description,achievementTitle)}
+                      onClick={() =>
+                        onStatusChange(
+                          student._id,
+                          "rejected",
+                          description,
+                          achievementTitle
+                        )
+                      }
                     >
                       <X className="w-5 h-5 mr-2" />
                       Reject
@@ -311,8 +344,7 @@ export function StudentDetailsModal({
                         {studentData?.certificateUrl ? (
                           <Button
                             variant="outline"
-                            size="sm"
-                            className="text-blue-600 hover:bg-blue-50"
+                            className="w-full bg-white hover:bg-blue-50 border-2 border-blue-200 text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center justify-center gap-2 py-4"
                             onClick={() => {
                               if (studentData.certificateUrl) {
                                 window.open(
@@ -323,6 +355,20 @@ export function StudentDetailsModal({
                               }
                             }}
                           >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
                             View Certificate
                           </Button>
                         ) : (
