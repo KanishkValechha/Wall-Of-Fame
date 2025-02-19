@@ -55,18 +55,28 @@ export async function GET(req: NextRequest) {
     const processedAchievements = achievements.map((achievement) => {
       const processed = { ...achievement };
 
-      // Convert userImage Binary to base64 if it exists
-      if (achievement.userImage?.data instanceof Binary) {
+      // Convert userImage Binary to base64 if it exists and is Binary
+      if (achievement.userImage?.data) {
+        const imageData =
+          achievement.userImage.data instanceof Binary
+            ? achievement.userImage.data.buffer
+            : achievement.userImage.data;
+
         processed.userImage = {
-          data: achievement.userImage.data.toString("base64"),
+          data: Buffer.from(imageData).toString("base64"),
           contentType: achievement.userImage.contentType,
         };
       }
 
-      // Convert certificateProof Binary to base64 if it exists
-      if (achievement.certificateProof?.data instanceof Binary) {
+      // Convert certificateProof Binary to base64 if it exists and is Binary
+      if (achievement.certificateProof?.data) {
+        const certData =
+          achievement.certificateProof.data instanceof Binary
+            ? achievement.certificateProof.data.buffer
+            : achievement.certificateProof.data;
+
         processed.certificateProof = {
-          data: achievement.certificateProof.data.toString("base64"),
+          data: Buffer.from(certData).toString("base64"),
           contentType: achievement.certificateProof.contentType,
         };
       }
@@ -79,6 +89,7 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    console.error("Error processing achievements:", error);
     return NextResponse.json(
       { error: "Failed to fetch achievements" },
       { status: 500 }
@@ -100,17 +111,15 @@ export async function POST(req: NextRequest) {
 
     await client.connect();
     const db = client.db("Wall-Of-Fame");
-    const result = await db
-      .collection("achievers")
-      .updateOne(
-        { _id: new ObjectId(_id) },
-        {
-          $set: {
-            approved: new Date(approval),
-            description: description || "",
-          },
-        }
-      );
+    const result = await db.collection("achievers").updateOne(
+      { _id: new ObjectId(_id) },
+      {
+        $set: {
+          approved: new Date(approval),
+          description: description || "",
+        },
+      }
+    );
 
     if (result.modifiedCount === 0) {
       return NextResponse.json(
