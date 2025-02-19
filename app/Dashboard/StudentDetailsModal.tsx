@@ -10,13 +10,8 @@ interface StudentDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   student: Achievement | null;
-  onStatusChange: (id: number, status: string, description: string) => void;
-  onOpenRemarks: (
-    id: number,
-    email: string | null,
-    name: string,
-    mobile: string
-  ) => void;
+  onStatusChange: (id: number, status: string, description: string, title:string) => void;
+  onOpenRemarks: (id: number, email: string | null, name: string, mobile: string) => void;
 }
 
 export function StudentDetailsModal({
@@ -167,9 +162,7 @@ export function StudentDetailsModal({
                     <Button
                       size="lg"
                       className="bg-green-600 hover:bg-green-700 text-white px-8"
-                      onClick={() =>
-                        onStatusChange(student._id, "approved", description)
-                      }
+                      onClick={() => onStatusChange(student._id, "approved", description,achievementTitle)}
                     >
                       <Check className="w-5 h-5 mr-2" />
                       Approve
@@ -178,9 +171,7 @@ export function StudentDetailsModal({
                       size="lg"
                       variant="destructive"
                       className="px-8"
-                      onClick={() =>
-                        onStatusChange(student._id, "rejected", description)
-                      }
+                      onClick={() => onStatusChange(student._id, "rejected", description,achievementTitle)}
                     >
                       <X className="w-5 h-5 mr-2" />
                       Reject

@@ -70,7 +70,7 @@ export default function InteractiveHomeClient({
     const fetchAchievements = async () => {
       try {
         const response = await fetch(
-          `/api/achievements?approved>=2001-01-01&archived=false`
+          `/api/achievements?approved=2001-01-01&archived=false`
         );
         const data = await response.json();
         if (response.ok) {
