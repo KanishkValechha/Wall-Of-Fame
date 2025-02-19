@@ -90,7 +90,7 @@ const updateAchievement = async (
         subject: "Achievement Status",
         html: `
           <p>Dear ${student.fullName},</p>
-          <p>Your achievement titled "<strong>${student.achievementTitle}</strong>" has been ${
+          <p>Your achievement titled "<strong>${title}</strong>" has been ${
           approval === null ? "rejected" : "approved"
         }.</p>
           <p><strong>Description:</strong> ${description}</p>
