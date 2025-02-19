@@ -15,16 +15,19 @@ import { categories } from "../data/achievements";
 import { Search, Filter, Check, X, MessageCircle } from "lucide-react";
 import { RemarksModal } from "./RemarksModal";
 import { StudentDetailsModal } from "./StudentDetailsModal";
-import { formatDistanceToNow } from 'date-fns';
-import { Achievement } from "@/app/types/achievements"
+import { formatDistanceToNow } from "date-fns";
+import { Achievement } from "@/app/types/achievements";
 
 const fetchAchievements = async () => {
-  const response = await fetch('/api/achievements?professorEmail=vedic20052005@gmail.com&blacklist=userImage,certificateProof', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await fetch(
+    "/api/achievements?professorEmail=vedic20052005@gmail.com&blacklist=userImage,certificateProof",
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
     }
-  });
+  );
   const data = await response.json();
   return data.achievements.map((achievement: any) => ({
     ...achievement,
@@ -33,13 +36,16 @@ const fetchAchievements = async () => {
   }));
 };
 
-const fetchStudentDetails = async (submissionId: number,name: string) => {
-  const response = await fetch(`/api/achievements?whitelist=userImage,certificateProof&_id=${submissionId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
+const fetchStudentDetails = async (submissionId: number, name: string) => {
+  const response = await fetch(
+    `/api/achievements?whitelist=description,achievementTitle,userImage,certificateProof&_id=${submissionId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
     }
-  });
+  );
   const data = await response.json();
   if (!data.achievements[0].userImage) {
     throw new Error("User image not found");
@@ -47,31 +53,56 @@ const fetchStudentDetails = async (submissionId: number,name: string) => {
   return data.achievements[0];
 };
 
-const updateAchievement = async (submissionId: number, approval: Date | null, description: string, student: any, silent: boolean) => {
-  const response = await fetch('/api/achievements', {
-    method: 'POST',
+const updateAchievement = async (
+  submissionId: number,
+  approval: Date | null,
+  description: string,
+  title:string,
+  student: any,
+  silent: boolean
+) => {
+  const response = await fetch("/api/achievements", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify({ _id: submissionId, approval, description }),
+    body: JSON.stringify({ _id: submissionId, approval, description,title }),
   });
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.error || 'Failed to update achievement');
+    throw new Error(data.error || "Failed to update achievement");
   }
-  if (!silent && student.studentMail && data && data.message && data.message === 'Achievement updated successfully') {
+  if (
+    !silent &&
+    student.studentMail &&
+    data &&
+    data.message &&
+    data.message === "Achievement updated successfully"
+  ) {
     //SEND MAIL TO USER
-    const response = await fetch('/api/sendMail',{
-      method: 'POST',
+    const response = await fetch("/api/sendMail", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({email: student.studentMail, subject: 'Achievement Status', html: `Your achievement has been ${approval === null ? 'rejected' : 'approved'}.`}),
+      body: JSON.stringify({
+        email: student.studentMail,
+        subject: "Achievement Status",
+        html: `
+          <p>Dear ${student.fullName},</p>
+          <p>Your achievement titled "<strong>${student.achievementTitle}</strong>" has been ${
+          approval === null ? "rejected" : "approved"
+        }.</p>
+          <p><strong>Description:</strong> ${description}</p>
+          <p>If you have any questions, feel free to contact your professor at <a href="mailto:${student.professorEmail}">${student.professorEmail}</a>.</p>
+          <p>Best regards,<br/>${student.professorName}</p>
+        `,
+      }),
     });
-  return data;
-}
+    fetchAchievements();
+    return data;
+  }
 };
-
 
 export default function DashboardClient() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -83,8 +114,8 @@ export default function DashboardClient() {
     isOpen: false,
     submissionId: null as number | null,
     studentMail: null as string | null,
-    studentName: '',
-    studentPhone: '',
+    studentName: "",
+    studentPhone: "",
   });
   const [selectedStudent, setSelectedStudent] = useState<Achievement | null>(
     null
@@ -94,15 +125,20 @@ export default function DashboardClient() {
 
   // Initialize state after component mounts to avoid hydration mismatch
   useEffect(() => {
-const loadAchievements = async () => {
+    const loadAchievements = async () => {
       const achievements = await fetchAchievements();
-    setSubmissions(achievements);
-    setIsLoaded(true);
-};
+      setSubmissions(achievements);
+      setIsLoaded(true);
+    };
     loadAchievements();
   }, []);
 
-  const handleStatusChange = async (submissionId: number, status: string, description: string) => {
+  const handleStatusChange = async (
+    submissionId: number,
+    status: string,
+    description: string,
+    title:string
+  ) => {
     let approval: Date | null;
     if (status === "approved") {
       approval = new Date();
@@ -111,23 +147,37 @@ const loadAchievements = async () => {
     } else {
       approval = null;
     }
-  
+
     try {
-      await updateAchievement(submissionId, approval, description, selectedStudent,false);
+      await updateAchievement(
+        submissionId,
+        approval,
+        description,
+        title,
+        selectedStudent,
+        false
+      );
       setSubmissions(
         submissions.map((sub) =>
-          sub._id === submissionId ? { ...sub, approved: approval, description } : sub
+          sub._id === submissionId
+            ? { ...sub, approved: approval, description }
+            : sub
         )
       );
     } catch (error: any) {
       setError(error.message);
     }
-  
+
     // Close the modal after status change
     setSelectedStudent(null);
   };
 
-  const handleOpenRemarks = (submissionId: number, studentMail: string | null, studentName: string, studentPhone: string) => {
+  const handleOpenRemarks = (
+    submissionId: number,
+    studentMail: string | null,
+    studentName: string,
+    studentPhone: string
+  ) => {
     setRemarksModal({
       isOpen: true,
       submissionId: submissionId,
@@ -144,44 +194,58 @@ const loadAchievements = async () => {
       isOpen: false,
       submissionId: null,
       studentMail: null,
-      studentName: '',
-      studentPhone: '',
+      studentName: "",
+      studentPhone: "",
     });
   };
 
-  const handleStudentClick = async (submissionId: number,approval:string, description: string) => {
+  const handleStudentClick = async (
+    submissionId: number,
+    approval: string,
+    description: string
+  ) => {
     try {
-      const student = submissions.find(sub => sub._id === submissionId);
+      const student = submissions.find((sub) => sub._id === submissionId);
       if (!student) return;
-      await updateAchievement(submissionId, approval === "approved" ? new Date() : new Date(2000, 0, 1), description, student,true);
+      await updateAchievement(
+        submissionId,
+        approval === "approved" ? new Date() : new Date(2000, 0, 1),
+        description,
+        student.achievementTitle,
+        student,
+        true
+      );
       setSubmissions(
         submissions.map((sub) =>
-          sub._id === submissionId ? { ...sub, approved: approval === "approved" ? new Date() : new Date(2000, 0, 1) } : sub
+          sub._id === submissionId
+            ? {
+                ...sub,
+                approved:
+                  approval === "approved" ? new Date() : new Date(2000, 0, 1),
+              }
+            : sub
         )
       );
     } catch (error: any) {
       setError(error.message);
     }
-  }
-
-      // const studentDetails = await fetchStudentDetails(submissionId);
-      // setSelectedStudent({ ...submissions.find(sub => sub._id === submissionId), ...studentDetails });
-      // Optionally, you can add logic to highlight the description field
-      // For example, you can set a state to control the highlight
-  //   } catch (err : any) {
-  //     setError(err.message);
-  //   }
-  // };
+  };
 
   const handleSendRemark = async (submissionId: number, remark: string) => {
-    const submission = submissions.find(sub => sub._id === submissionId);
-    if (!submission) return;  
+    const submission = submissions.find((sub) => sub._id === submissionId);
+    if (!submission) return;
     try {
       // Simulate sending remark
       await new Promise((resolve) => setTimeout(resolve, 200));
       setSuccessMessage("Remark sent successfully!");
-      setRemarksModal({ isOpen: false, submissionId: null, studentMail: null, studentName: '', studentPhone: '' });
-    } catch (error:any) {
+      setRemarksModal({
+        isOpen: false,
+        submissionId: null,
+        studentMail: null,
+        studentName: "",
+        studentPhone: "",
+      });
+    } catch (error: any) {
       setError(error.message);
     }
   };
@@ -191,7 +255,8 @@ const loadAchievements = async () => {
       sub.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sub.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory =
-      selectedCategory === "all" || sub.achievementCategory === selectedCategory;
+      selectedCategory === "all" ||
+      sub.achievementCategory === selectedCategory;
     const matchesStatus =
       selectedStatus === "all" ||
       (selectedStatus === "approved" && sub.approved !== null) ||
@@ -289,8 +354,14 @@ const loadAchievements = async () => {
                         exit={{ opacity: 0 }}
                         className="hover:bg-black/5 transition-colors cursor-pointer"
                         onClick={async () => {
-                          const studentDetails = await fetchStudentDetails(submission._id,submission.fullName);
-                          setSelectedStudent({ ...submission, ...studentDetails });
+                          const studentDetails = await fetchStudentDetails(
+                            submission._id,
+                            submission.fullName
+                          );
+                          setSelectedStudent({
+                            ...submission,
+                            ...studentDetails,
+                          });
                         }}
                       >
                         <td className="px-6 py-4">
@@ -305,22 +376,29 @@ const loadAchievements = async () => {
                           {submission.achievementCategory}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
-                          {formatDistanceToNow(new Date(submission.submissionDate), { addSuffix: true })}
+                          {formatDistanceToNow(
+                            new Date(submission.submissionDate),
+                            { addSuffix: true }
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             ${
-                              submission.approved !== null && submission.approved.getFullYear() !== 2000
+                              submission.approved !== null &&
+                              submission.approved.getFullYear() !== 2000
                                 ? "bg-green-100 text-green-800"
-                                : submission.approved !== null && submission.approved.getFullYear() === 2000
+                                : submission.approved !== null &&
+                                  submission.approved.getFullYear() === 2000
                                 ? "bg-red-100 text-red-800"
                                 : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
-                            {submission.approved !== null && submission.approved.getFullYear() !== 2000
+                            {submission.approved !== null &&
+                            submission.approved.getFullYear() !== 2000
                               ? "Approved"
-                              : submission.approved !== null && submission.approved.getFullYear() === 2000
+                              : submission.approved !== null &&
+                                submission.approved.getFullYear() === 2000
                               ? "Rejected"
                               : "Pending"}
                           </span>
@@ -332,7 +410,11 @@ const loadAchievements = async () => {
                             className="hover:bg-green-100 hover:text-green-800"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStudentClick(submission._id,"approved","");
+                              handleStudentClick(
+                                submission._id,
+                                "approved",
+                                ""
+                              );
                             }}
                           >
                             <Check className="w-4 h-4" />
@@ -343,7 +425,11 @@ const loadAchievements = async () => {
                             className="hover:bg-red-100 hover:text-red-800"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStudentClick(submission._id,"rejected","");
+                              handleStudentClick(
+                                submission._id,
+                                "rejected",
+                                ""
+                              );
                             }}
                           >
                             <X className="w-4 h-4" />
@@ -381,7 +467,11 @@ const loadAchievements = async () => {
           <div className="bg-white rounded-lg shadow-xl p-6 max-h-[90vh] overflow-y-auto w-full max-w-4xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-display">Error</h2>
-              <Button variant="ghost" size="icon" onClick={() => setError(null)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setError(null)}
+              >
                 <X className="w-4 h-4" />
               </Button>
             </div>
@@ -395,7 +485,11 @@ const loadAchievements = async () => {
           <div className="bg-green-100 rounded-lg shadow-xl p-6 max-h-[90vh] overflow-y-auto w-full max-w-4xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-display text-green-800">Success</h2>
-              <Button variant="ghost" size="icon" onClick={() => setSuccessMessage(null)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSuccessMessage(null)}
+              >
                 <X className="w-4 h-4" />
               </Button>
             </div>

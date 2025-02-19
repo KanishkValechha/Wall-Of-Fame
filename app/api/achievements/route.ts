@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const filter: any = {};
     const projection: any = {};
-
     if (searchParams.has("achievementCategory")) {
       filter.achievementCategory = searchParams.get("achievementCategory");
     }
@@ -20,9 +19,12 @@ export async function GET(req: NextRequest) {
       filter.professorEmail = searchParams.get("professorEmail");
     }
     if (searchParams.has("approved")) {
-      const approvedDate = new Date(searchParams.get("approved") as string);
-      if (!isNaN(approvedDate.getTime())) {
-        filter.approved = { $gte: approvedDate };
+      const approvedValue = searchParams.get("approved");
+      if (approvedValue) {
+        const approvedDate = new Date(approvedValue);
+        if (!isNaN(approvedDate.getTime())) {
+          filter.approved = { ...filter.approved, $gte: approvedDate };
+        }
       }
     }
     if (searchParams.has("archived")) {
@@ -100,7 +102,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { _id, approval, description } = body;
+    const { _id, approval, description,title } = body;
 
     if (!_id || !approval) {
       return NextResponse.json(
@@ -111,15 +113,18 @@ export async function POST(req: NextRequest) {
 
     await client.connect();
     const db = client.db("Wall-Of-Fame");
-    const result = await db.collection("achievers").updateOne(
-      { _id: new ObjectId(_id) },
-      {
-        $set: {
-          approved: new Date(approval),
-          description: description || "",
-        },
-      }
-    );
+    const result = await db
+      .collection("achievers")
+      .updateOne(
+        { _id: new ObjectId(_id) },
+        {
+          $set: {
+            approved: new Date(approval),
+            description: description || "",
+            achievementTitle: title || "",
+          },
+        }
+      );
 
     if (result.modifiedCount === 0) {
       return NextResponse.json(
