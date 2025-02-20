@@ -132,7 +132,7 @@ export default function InteractiveHomeClient({
       const horizontalOffset = isTablet ? -2 : -4;
 
       // Increased row height for more vertical spacing
-      const rowHeight = 35; // Increased from 30
+      const rowHeight = 45; // Increased from 30
       const startFromTop = 0;
       const baseTop = startFromTop + row * rowHeight;
 

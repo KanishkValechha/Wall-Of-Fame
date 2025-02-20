@@ -57,7 +57,7 @@ const updateAchievement = async (
   submissionId: number,
   approval: Date | null,
   description: string,
-  title:string,
+  title: string,
   student: any,
   silent: boolean
 ) => {
@@ -66,7 +66,7 @@ const updateAchievement = async (
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ _id: submissionId, approval, description,title }),
+    body: JSON.stringify({ _id: submissionId, approval, description, title }),
   });
   const data = await response.json();
   if (!response.ok) {
@@ -94,12 +94,13 @@ const updateAchievement = async (
           approval === null ? "rejected" : "approved"
         }.</p>
           <p><strong>Description:</strong> ${description}</p>
-          <p>If you have any questions, feel free to contact your professor at <a href="mailto:${student.professorEmail}">${student.professorEmail}</a>.</p>
+          <p>If you have any questions, feel free to contact your professor at <a href="mailto:${
+            student.professorEmail
+          }">${student.professorEmail}</a>.</p>
           <p>Best regards,<br/>${student.professorName}</p>
         `,
       }),
     });
-    fetchAchievements();
     return data;
   }
 };
@@ -137,7 +138,7 @@ export default function DashboardClient() {
     submissionId: number,
     status: string,
     description: string,
-    title:string
+    title: string
   ) => {
     let approval: Date | null;
     if (status === "approved") {
