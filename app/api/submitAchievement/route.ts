@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
             <p><strong>Achievement Category:</strong> ${achievement.achievementCategory}</p>
             <p><strong>Submission Date:</strong> ${achievement.submissionDate}</p>
             <p><strong>Remarks:</strong> ${achievement.remarks}</p>
-            <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/admin">Click here</a> to approve or reject the achievement.</p>
+            <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/Dashboard">Click here</a> to approve or reject the achievement.</p>
             <p>Thank you!</p>`);
 
         return NextResponse.json({
