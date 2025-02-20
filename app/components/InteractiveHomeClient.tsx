@@ -208,7 +208,7 @@ export default function InteractiveHomeClient({
                 <div className="decorative-line mb-4"></div>
                 <div className="flex items-center justify-center gap-2 sm:gap-4 pl-8">
                   <Logo />
-                  <h1 className="title-gradient text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold text-center tracking-wider">
+                  <h1 className="title-gradient text-3xl md:text-5xl lg:text-6xl font-display font-bold text-center tracking-wider">
                     Wall of Fame
                   </h1>
                   <div className="relative w-10 h-10 md:w-20 md:h-20 ">
