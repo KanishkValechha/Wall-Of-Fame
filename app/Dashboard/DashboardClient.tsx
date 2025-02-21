@@ -260,8 +260,9 @@ export default function DashboardClient() {
       sub.achievementCategory === selectedCategory;
     const matchesStatus =
       selectedStatus === "all" ||
-      (selectedStatus === "approved" && sub.approved !== null) ||
-      (selectedStatus === "rejected" && sub.approved === null);
+      (selectedStatus === "pending" && sub.approved === null) ||
+      (selectedStatus === "approved" && sub.approved?.getFullYear() !== 2000) ||
+      (selectedStatus === "rejected" && sub.approved?.getFullYear() === 2000);
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
