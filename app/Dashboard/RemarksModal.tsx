@@ -41,8 +41,14 @@ export function RemarksModal({
           },
           body: JSON.stringify({
             email: studentMail,
-            subject: 'New Remark',
-            html: remarks,
+            subject: 'New Remark regarding your Wall Of Fame Submission',
+            html: `
+              <p>Dear ${studentName},</p>
+              <p>You have received a new remark regarding your achievement submission:</p>
+              <p><strong>Remarks:</strong> ${remarks}</p>
+              <p>If you have any questions, feel free to contact your professor at <a href="mailto:vedic20052005@gmail.com">vedic20052005@gmail.com</a>.</p>
+              <p>Best regards,</p>
+            `,
           }),
         });
 

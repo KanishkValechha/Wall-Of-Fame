@@ -84,7 +84,7 @@ export function StudentDetailsModal({
   useEffect(() => {
     if (student) {
       setDescription(student.description || "");
-      setAchievementTitle(student.achievementTitle || "");
+      setAchievementTitle(student.title || "");
     }
   }, [student]);
 
