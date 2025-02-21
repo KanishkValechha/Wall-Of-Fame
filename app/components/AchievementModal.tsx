@@ -117,7 +117,7 @@ export default function AchievementModal({
                       className="space-y-3"
                     >
                       <h3 className="text-lg md:text-xl font-semibold text-primary">
-                        {achievement.achievementTitle}
+                        {achievement.title}
                       </h3>
                       <p className="text-foreground/80 text-sm md:text-base leading-relaxed">
                         {achievement.description}

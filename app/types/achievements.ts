@@ -16,7 +16,7 @@ export interface Achievement {
     approved: Date | null;
     overAllTop10: boolean;
     archived: boolean;
-    achievementTitle: string;
+    title: string;
     description: string;
   }
   

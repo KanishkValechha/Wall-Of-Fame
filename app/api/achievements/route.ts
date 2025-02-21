@@ -102,31 +102,28 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { _id, approval, description,title } = body;
-
-    if (!_id || !approval) {
+    const { _id, ...updateFields } = body;
+    if (!_id) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing required field: _id" },
         { status: 400 }
       );
     }
-
+    if (updateFields?.approved) {
+      updateFields.approved = new Date(updateFields.approved);
+    }
+    
     await client.connect();
     const db = client.db("Wall-Of-Fame");
     const result = await db
-      .collection("achievers")
-      .updateOne(
-        { _id: new ObjectId(_id) },
-        {
-          $set: {
-            approved: new Date(approval),
-            description: description || "",
-            achievementTitle: title || "",
-          },
-        }
-      );
-
-    if (result.modifiedCount === 0) {
+    .collection("achievers")
+    .updateOne(
+      { _id: new ObjectId(_id) },
+      { 
+        $set: updateFields 
+      }
+    );
+      if (result.modifiedCount === 0) {
       return NextResponse.json(
         { error: "No document found with the given _id" },
         { status: 404 }

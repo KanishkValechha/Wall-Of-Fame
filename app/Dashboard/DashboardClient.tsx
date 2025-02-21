@@ -38,7 +38,7 @@ const fetchAchievements = async () => {
 
 const fetchStudentDetails = async (submissionId: number, name: string) => {
   const response = await fetch(
-    `/api/achievements?whitelist=description,achievementTitle,userImage,certificateProof&_id=${submissionId}`,
+    `/api/achievements?whitelist=description,title,userImage,certificateProof&_id=${submissionId}`,
     {
       method: "GET",
       headers: {
@@ -55,7 +55,7 @@ const fetchStudentDetails = async (submissionId: number, name: string) => {
 
 const updateAchievement = async (
   submissionId: number,
-  approval: Date | null,
+  approved: Date | null,
   description: string,
   title: string,
   student: any,
@@ -66,7 +66,7 @@ const updateAchievement = async (
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ _id: submissionId, approval, description, title }),
+    body: JSON.stringify({ _id: submissionId, approved, description, title }),
   });
   const data = await response.json();
   if (!response.ok) {
@@ -80,6 +80,7 @@ const updateAchievement = async (
     data.message === "Achievement updated successfully"
   ) {
     //SEND MAIL TO USER
+    const APPROVED = approved && approved.getFullYear() !== 2000;
     const response = await fetch("/api/sendMail", {
       method: "POST",
       headers: {
@@ -90,17 +91,16 @@ const updateAchievement = async (
         subject: "Achievement Status",
         html: `
           <p>Dear ${student.fullName},</p>
-          <p>Your achievement titled "<strong>${title}</strong>" has been ${
-          approval === null ? "rejected" : "approved"
-        }.</p>
-          <p><strong>Description:</strong> ${description}</p>
-          <p>If you have any questions, feel free to contact your professor at <a href="mailto:${
-            student.professorEmail
-          }">${student.professorEmail}</a>.</p>
+          <p>Your achievement ${APPROVED ? `titled <strong>${title}</strong>` : ''} has been ${
+            APPROVED ? "approved" : "rejected"
+          }.</p>
+          ${APPROVED ? `<p><strong>Description:</strong> ${description}</p>` : ''}
+          <p>If you have any questions, feel free to contact your professor at 
+          <a href="mailto:${student.professorEmail}">${student.professorEmail}</a>.</p>
           <p>Best regards,<br/>${student.professorName}</p>
         `,
       }),
-    });
+          });
     return data;
   }
 };
@@ -140,19 +140,19 @@ export default function DashboardClient() {
     description: string,
     title: string
   ) => {
-    let approval: Date | null;
+    let approved: Date | null;
     if (status === "approved") {
-      approval = new Date();
+      approved = new Date();
     } else if (status === "rejected") {
-      approval = new Date(2000, 0, 1);
+      approved = new Date(2000, 0, 1);
     } else {
-      approval = null;
+      approved = null;
     }
 
     try {
       await updateAchievement(
         submissionId,
-        approval,
+        approved,
         description,
         title,
         selectedStudent,
@@ -161,7 +161,7 @@ export default function DashboardClient() {
       setSubmissions(
         submissions.map((sub) =>
           sub._id === submissionId
-            ? { ...sub, approved: approval, description }
+            ? { ...sub, approved: approved, description }
             : sub
         )
       );
@@ -202,7 +202,7 @@ export default function DashboardClient() {
 
   const handleStudentClick = async (
     submissionId: number,
-    approval: string,
+    approved: string,
     description: string
   ) => {
     try {
@@ -210,9 +210,9 @@ export default function DashboardClient() {
       if (!student) return;
       await updateAchievement(
         submissionId,
-        approval === "approved" ? new Date() : new Date(2000, 0, 1),
+        approved === "approved" ? new Date() : new Date(2000, 0, 1),
         description,
-        student.achievementTitle,
+        student.title,
         student,
         true
       );
@@ -222,7 +222,7 @@ export default function DashboardClient() {
             ? {
                 ...sub,
                 approved:
-                  approval === "approved" ? new Date() : new Date(2000, 0, 1),
+                approved === "approved" ? new Date() : new Date(2000, 0, 1),
               }
             : sub
         )
@@ -409,7 +409,8 @@ export default function DashboardClient() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="hover:bg-green-100 hover:text-green-800"
+                            className={`hover:bg-green-100 hover:text-green-800 ${submission.approved && submission.approved?.getFullYear() !== 2000 ? 'text-green-800 bg-green-100' : ''}`}
+                            // if submission.approved?.getFullYear() !== 2000, green
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStudentClick(
@@ -424,7 +425,8 @@ export default function DashboardClient() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="hover:bg-red-100 hover:text-red-800"
+                            className={`hover:bg-red-100 hover:text-red-800  ${submission.approved && submission.approved?.getFullYear() === 2000 ? 'bg-red-100 text-red-800' : ''}`}
+                            // if submission.approved?.getFullYear() !== 2000, green
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStudentClick(
