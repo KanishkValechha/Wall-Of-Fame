@@ -93,16 +93,22 @@ const updateAchievement = async (
         subject: "Achievement Status",
         html: `
           <p>Dear ${student.fullName},</p>
-          <p>Your achievement ${APPROVED ? `titled <strong>${title}</strong>` : ''} has been ${
-            APPROVED ? "approved" : "rejected"
-          }.</p>
-          ${APPROVED ? `<p><strong>Description:</strong> ${description}</p>` : ''}
+          <p>Your achievement ${
+            APPROVED ? `titled <strong>${title}</strong>` : ""
+          } has been ${APPROVED ? "approved" : "rejected"}.</p>
+          ${
+            APPROVED
+              ? `<p><strong>Description:</strong> ${description}</p>`
+              : ""
+          }
           <p>If you have any questions, feel free to contact your professor at 
-          <a href="mailto:${student.professorEmail}">${student.professorEmail}</a>.</p>
+          <a href="mailto:${student.professorEmail}">${
+          student.professorEmail
+        }</a>.</p>
           <p>Best regards,<br/>${student.professorName}</p>
         `,
       }),
-          });
+    });
     return data;
   }
 };
@@ -225,7 +231,7 @@ export default function DashboardClient() {
             ? {
                 ...sub,
                 approved:
-                approved === "approved" ? new Date() : new Date(2000, 0, 1),
+                  approved === "approved" ? new Date() : new Date(2000, 0, 1),
               }
             : sub
         )
@@ -266,11 +272,14 @@ export default function DashboardClient() {
       (selectedStatus === "pending" && sub.approved === null) ||
       (selectedStatus === "approved" && sub.approved?.getFullYear() !== 2000) ||
       (selectedStatus === "rejected" && sub.approved?.getFullYear() === 2000);
-    const matchesDateRange = !dateRange?.from || !dateRange?.to || (
-      new Date(sub.submissionDate) >= dateRange.from &&
-      new Date(sub.submissionDate) <= dateRange.to
+    const matchesDateRange =
+      !dateRange?.from ||
+      !dateRange?.to ||
+      (new Date(sub.submissionDate) >= dateRange.from &&
+        new Date(sub.submissionDate) <= dateRange.to);
+    return (
+      matchesSearch && matchesCategory && matchesStatus && matchesDateRange
     );
-    return matchesSearch && matchesCategory && matchesStatus && matchesDateRange;
   });
 
   if (!isLoaded) {
@@ -278,16 +287,18 @@ export default function DashboardClient() {
   }
 
   return (
-    <div className="min-h-screen fancy-bg p-4 sm:p-6">
+    <div className="min-h-screen fancy-bg p-2 sm:p-6">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/50 backdrop-blur-sm rounded-lg p-6 shadow-lg mb-6"
+          className="bg-white/50 backdrop-blur-sm rounded-lg p-3 sm:p-6 shadow-lg mb-6"
         >
-          <h1 className="text-3xl font-display mb-6">Professor Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-display mb-4 sm:mb-6">
+            Professor Dashboard
+          </h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
             <div className="relative">
               <Input
                 placeholder="Search by name or reg. number"
@@ -328,7 +339,7 @@ export default function DashboardClient() {
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <DateRangePicker
               date={dateRange}
               onDateChange={setDateRange}
@@ -337,8 +348,8 @@ export default function DashboardClient() {
             />
           </div>
 
-          <div className="overflow-x-auto">
-            <motion.div layout className="min-w-full">
+          <div className="overflow-x-auto -mx-3 sm:mx-0">
+            <motion.div layout className="min-w-[800px] sm:min-w-full">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
@@ -423,7 +434,12 @@ export default function DashboardClient() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className={`hover:bg-green-100 hover:text-green-800 ${submission.approved && submission.approved?.getFullYear() !== 2000 ? 'text-green-800 bg-green-100' : ''}`}
+                            className={`hover:bg-green-100 hover:text-green-800 ${
+                              submission.approved &&
+                              submission.approved?.getFullYear() !== 2000
+                                ? "text-green-800 bg-green-100"
+                                : ""
+                            }`}
                             // if submission.approved?.getFullYear() !== 2000, green
                             onClick={(e) => {
                               e.stopPropagation();
@@ -439,7 +455,12 @@ export default function DashboardClient() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className={`hover:bg-red-100 hover:text-red-800  ${submission.approved && submission.approved?.getFullYear() === 2000 ? 'bg-red-100 text-red-800' : ''}`}
+                            className={`hover:bg-red-100 hover:text-red-800  ${
+                              submission.approved &&
+                              submission.approved?.getFullYear() === 2000
+                                ? "bg-red-100 text-red-800"
+                                : ""
+                            }`}
                             // if submission.approved?.getFullYear() !== 2000, green
                             onClick={(e) => {
                               e.stopPropagation();
@@ -539,4 +560,3 @@ export default function DashboardClient() {
 function setSelectedStudent(arg0: null): void {
   throw new Error("Function not implemented.");
 }
-

@@ -148,9 +148,9 @@ export function StudentDetailsModal({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 flex items-start justify-center z-[101] p-4 overflow-y-auto"
+            className="fixed inset-0 flex items-start justify-center z-[101] p-2 sm:p-4 overflow-y-auto"
           >
-            <div className="bg-white rounded-lg shadow-xl p-6 my-8 w-full max-w-4xl">
+            <div className="bg-white rounded-lg shadow-xl p-3 sm:p-6 my-4 sm:my-8 w-full max-w-4xl">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
@@ -158,16 +158,20 @@ export function StudentDetailsModal({
                 </div>
               ) : (
                 <>
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-display">Student Details</h2>
+                  <div className="flex justify-between items-center mb-4 sm:mb-6">
+                    <h2 className="text-xl sm:text-2xl font-display">
+                      Student Details
+                    </h2>
                     <Button variant="ghost" size="icon" onClick={onClose}>
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
 
                   {/* Achievement Title Input */}
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium">Achievement Title</h3>
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-base sm:text-lg font-medium">
+                      Achievement Title
+                    </h3>
                     <Input
                       value={achievementTitle}
                       onChange={(e) => setAchievementTitle(e.target.value)}
@@ -177,8 +181,10 @@ export function StudentDetailsModal({
                   </div>
 
                   {/* Description Input */}
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium">Description</h3>
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-base sm:text-lg font-medium">
+                      Description
+                    </h3>
                     <textarea
                       ref={descriptionInputRef}
                       value={description}
@@ -190,10 +196,10 @@ export function StudentDetailsModal({
                   </div>
 
                   {/* Status Actions Bar */}
-                  <div className="bg-gray-50 p-4 rounded-lg mb-6 flex justify-center gap-4">
+                  <div className="bg-gray-50 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 flex flex-col sm:flex-row justify-center gap-2 sm:gap-4">
                     <Button
-                      size="lg"
-                      className="bg-green-600 hover:bg-green-700 text-white px-8"
+                      size="default"
+                      className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
                       onClick={() =>
                         onStatusChange(
                           student._id,
@@ -207,9 +213,9 @@ export function StudentDetailsModal({
                       Approve
                     </Button>
                     <Button
-                      size="lg"
+                      size="default"
                       variant="destructive"
-                      className="px-8"
+                      className="w-full sm:w-auto"
                       onClick={() =>
                         onStatusChange(
                           student._id,
@@ -223,9 +229,9 @@ export function StudentDetailsModal({
                       Reject
                     </Button>
                     <Button
-                      size="lg"
+                      size="default"
                       variant="outline"
-                      className="px-8"
+                      className="w-full sm:w-auto"
                       onClick={() =>
                         onOpenRemarks(
                           student._id,
@@ -240,8 +246,8 @@ export function StudentDetailsModal({
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="space-y-4 sm:space-y-6">
                       <div className="relative w-full aspect-square rounded-lg overflow-hidden">
                         {studentData?.imageUrl && (
                           <Image
@@ -281,7 +287,7 @@ export function StudentDetailsModal({
                       </div>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h3 className="font-semibold mb-2">
                           Achievement Details
