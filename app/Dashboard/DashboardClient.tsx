@@ -17,6 +17,8 @@ import { RemarksModal } from "./RemarksModal";
 import { StudentDetailsModal } from "./StudentDetailsModal";
 import { formatDistanceToNow } from "date-fns";
 import { Achievement } from "@/app/types/achievements";
+import { DateRange } from "react-day-picker";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 
 const fetchAchievements = async () => {
   const response = await fetch(
@@ -123,6 +125,7 @@ export default function DashboardClient() {
   );
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   // Initialize state after component mounts to avoid hydration mismatch
   useEffect(() => {
@@ -263,7 +266,11 @@ export default function DashboardClient() {
       (selectedStatus === "pending" && sub.approved === null) ||
       (selectedStatus === "approved" && sub.approved?.getFullYear() !== 2000) ||
       (selectedStatus === "rejected" && sub.approved?.getFullYear() === 2000);
-    return matchesSearch && matchesCategory && matchesStatus;
+    const matchesDateRange = !dateRange?.from || !dateRange?.to || (
+      new Date(sub.submissionDate) >= dateRange.from &&
+      new Date(sub.submissionDate) <= dateRange.to
+    );
+    return matchesSearch && matchesCategory && matchesStatus && matchesDateRange;
   });
 
   if (!isLoaded) {
@@ -280,7 +287,7 @@ export default function DashboardClient() {
         >
           <h1 className="text-3xl font-display mb-6">Professor Dashboard</h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="relative">
               <Input
                 placeholder="Search by name or reg. number"
@@ -321,6 +328,13 @@ export default function DashboardClient() {
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
+            
+            <DateRangePicker
+              date={dateRange}
+              onDateChange={setDateRange}
+              placeholder="Filter by date range"
+              className="w-full"
+            />
           </div>
 
           <div className="overflow-x-auto">
@@ -522,3 +536,7 @@ export default function DashboardClient() {
     </div>
   );
 }
+function setSelectedStudent(arg0: null): void {
+  throw new Error("Function not implemented.");
+}
+
