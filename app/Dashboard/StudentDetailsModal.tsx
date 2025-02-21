@@ -118,6 +118,19 @@ export function StudentDetailsModal({
     };
   }, [studentData?.certificateUrl]);
 
+  // Add this useEffect to handle body scrolling
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   if (!student) return null;
 
   return (
@@ -135,9 +148,9 @@ export function StudentDetailsModal({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 flex items-center justify-center z-[101] p-4"
+            className="fixed inset-0 flex items-start justify-center z-[101] p-4 overflow-y-auto"
           >
-            <div className="bg-white rounded-lg shadow-xl p-6 max-h-[90vh] overflow-y-auto w-full max-w-4xl">
+            <div className="bg-white rounded-lg shadow-xl p-6 my-8 w-full max-w-4xl">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
