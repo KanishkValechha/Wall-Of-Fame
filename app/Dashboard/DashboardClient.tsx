@@ -132,6 +132,7 @@ export default function DashboardClient() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [isStudentLoading, setIsStudentLoading] = useState(false);
 
   // Initialize state after component mounts to avoid hydration mismatch
   useEffect(() => {
@@ -381,14 +382,21 @@ export default function DashboardClient() {
                         exit={{ opacity: 0 }}
                         className="hover:bg-black/5 transition-colors cursor-pointer"
                         onClick={async () => {
-                          const studentDetails = await fetchStudentDetails(
-                            submission._id,
-                            submission.fullName
-                          );
-                          setSelectedStudent({
-                            ...submission,
-                            ...studentDetails,
-                          });
+                          setIsStudentLoading(true);
+                          try {
+                            const studentDetails = await fetchStudentDetails(
+                              submission._id,
+                              submission.fullName
+                            );
+                            setSelectedStudent({
+                              ...submission,
+                              ...studentDetails,
+                            });
+                          } catch (error) {
+                            setError("Failed to load student details");
+                          } finally {
+                            setIsStudentLoading(false);
+                          }
                         }}
                       >
                         <td className="px-6 py-4">
@@ -533,6 +541,59 @@ export default function DashboardClient() {
               </Button>
             </div>
             <p className="text-green-800">{successMessage}</p>
+          </div>
+        </div>
+      )}
+
+      {isStudentLoading && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-[280px] backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-8">
+              {/* Loading animation container - scaled down */}
+              <div className="relative scale-75">
+                {/* Outer decorative ring with rotation */}
+                <div className="absolute -inset-8 rounded-full border border-black/[0.02] animate-[spin_8s_linear_infinite]" />
+
+                {/* Main spinner group */}
+                <div className="relative w-24 h-24 flex items-center justify-center">
+                  {/* Background rings with animations */}
+                  <div className="absolute inset-0 rounded-full border-2 border-black/[0.03] animate-[spin_4s_linear_infinite]" />
+                  <div className="absolute inset-2 rounded-full border border-black/[0.05] animate-[spin_6s_linear_infinite_reverse]" />
+
+                  {/* Spinning elements */}
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-black/20 animate-[spin_2s_cubic-bezier(0.4,0,0.2,1)_infinite]" />
+                  <div className="absolute inset-4 rounded-full border-2 border-transparent border-t-black/20 animate-[spin_2.5s_cubic-bezier(0.4,0,0.2,1)_infinite_reverse]" />
+
+                  {/* Additional rotating rings */}
+                  <div className="absolute inset-6 rounded-full border border-black/[0.02] animate-[spin_3s_linear_infinite]" />
+                  <div className="absolute inset-8 rounded-full border border-black/[0.02] animate-[spin_5s_linear_infinite_reverse]" />
+
+                  {/* Center dot with pulse */}
+                  <div className="relative w-1.5 h-1.5">
+                    <div className="absolute inset-0 rounded-full bg-black/40 animate-ping" />
+                    <div className="relative w-1.5 h-1.5 rounded-full bg-black/80" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Text container */}
+              <div className="flex flex-col items-center gap-2">
+                <h3 className="text-black/80 text-xs font-light tracking-[0.25em] uppercase">
+                  Loading
+                </h3>
+
+                {/* Subtle animated dots */}
+                <div className="flex gap-1.5">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-1 h-1 rounded-full bg-black/40 animate-[pulse_2s_cubic-bezier(0.4,0,0.2,1)_infinite]"
+                      style={{ animationDelay: `${i * 300}ms` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
