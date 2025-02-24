@@ -63,7 +63,7 @@ export default function InteractiveHomeClient({
     if (!isReturning) {
       const timer = setTimeout(() => {
         setMinimumTimeElapsed(true);
-      }, 5000);
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [isReturning]);
