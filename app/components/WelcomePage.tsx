@@ -13,7 +13,7 @@ export default function WelcomePage({ isLoading = true }: WelcomePageProps) {
       animate={{ y: isLoading ? 0 : "-100%" }}
       transition={{
         duration: 1.2,
-        delay: 5,
+        delay: 0.2, 
         ease: [0.22, 1, 0.36, 1],
       }}
       className="fixed inset-0 bg-white z-[60] flex flex-col items-center justify-center"

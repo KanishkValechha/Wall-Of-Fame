@@ -43,6 +43,7 @@ export default function InteractiveHomeClient({
   const [showTeamModal, setShowTeamModal] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(!isReturning);
+  const [minimumTimeElapsed, setMinimumTimeElapsed] = useState(false);
 
   const {
     isSidebarAnimating,
@@ -59,13 +60,22 @@ export default function InteractiveHomeClient({
   }, []);
 
   useEffect(() => {
-    if (!isReturning && dataLoaded) {
+    if (!isReturning) {
       const timer = setTimeout(() => {
-        setShowContent(true);
-      }, 6200); // Wait for 6.2 seconds after data is loaded
+        setMinimumTimeElapsed(true);
+      }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [isReturning, dataLoaded]);
+  }, [isReturning]);
+
+  useEffect(() => {
+    if (!isReturning && dataLoaded && minimumTimeElapsed) {
+      const timer = setTimeout(() => {
+        setShowContent(true);
+      }, 200); // Small delay to ensure smooth transition
+      return () => clearTimeout(timer);
+    }
+  }, [isReturning, dataLoaded, minimumTimeElapsed]);
 
   useEffect(() => {
     const fetchAchievements = async () => {
@@ -200,7 +210,9 @@ export default function InteractiveHomeClient({
 
   return (
     <>
-      {showWelcome && <WelcomePage isLoading={!dataLoaded} />}
+      {showWelcome && (
+        <WelcomePage isLoading={!dataLoaded || !minimumTimeElapsed} />
+      )}
       {/* Only render main content when data is loaded and welcome animation is complete */}
       {(isReturning || (dataLoaded && showContent)) && (
         <div
