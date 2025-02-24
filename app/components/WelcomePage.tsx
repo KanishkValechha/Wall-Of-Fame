@@ -2,12 +2,20 @@
 
 import { motion } from "framer-motion";
 
-export default function WelcomePage() {
+interface WelcomePageProps {
+  isLoading?: boolean;
+}
+
+export default function WelcomePage({ isLoading = true }: WelcomePageProps) {
   return (
     <motion.div
       initial={{ y: 0 }}
-      animate={{ y: '-100%' }}
-      transition={{ duration: 1.2, delay: 2.5, ease: [0.22, 1, 0.36, 1] }}
+      animate={{ y: isLoading ? 0 : "-100%" }}
+      transition={{
+        duration: 1.2,
+        delay: 5,
+        ease: [0.22, 1, 0.36, 1],
+      }}
       className="fixed inset-0 bg-white z-[60] flex flex-col items-center justify-center"
     >
       <motion.div
@@ -45,25 +53,54 @@ export default function WelcomePage() {
         >
           <div className="w-16 h-16 mx-auto relative">
             <motion.div
-              animate={{ 
+              animate={{
                 y: [0, -12, 0],
-                scale: [1, 0.8, 1]
+                scale: [1, 0.8, 1],
               }}
               transition={{
                 duration: 1.5,
                 repeat: Infinity,
                 repeatType: "reverse",
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
               className="absolute inset-0"
             >
-              <svg className="w-full h-full text-black/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              <svg
+                className="w-full h-full text-black/80"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                />
               </svg>
             </motion.div>
           </div>
         </motion.div>
       </motion.div>
+      {isLoading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className="absolute bottom-12"
+        >
+          <div className="flex items-center gap-2">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-5 h-5 border-2 border-black border-t-transparent rounded-full"
+            />
+            <span className="text-sm text-neutral-600">
+              Loading achievements...
+            </span>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

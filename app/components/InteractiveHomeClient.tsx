@@ -37,6 +37,7 @@ export default function InteractiveHomeClient({
     useState<Achievement | null>(null);
   const [windowWidth, setWindowWidth] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const [showContent, setShowContent] = useState(isReturning);
   const [showTeamModal, setShowTeamModal] = useState(false);
@@ -58,13 +59,13 @@ export default function InteractiveHomeClient({
   }, []);
 
   useEffect(() => {
-    if (!isReturning) {
+    if (!isReturning && dataLoaded) {
       const timer = setTimeout(() => {
         setShowContent(true);
-      }, 3700);
+      }, 6200); // Wait for 6.2 seconds after data is loaded
       return () => clearTimeout(timer);
     }
-  }, [isReturning]);
+  }, [isReturning, dataLoaded]);
 
   useEffect(() => {
     const fetchAchievements = async () => {
@@ -95,6 +96,7 @@ export default function InteractiveHomeClient({
         console.error("Error fetching achievements:", error);
       } finally {
         setLoading(false);
+        setDataLoaded(true); // Set dataLoaded to true after fetch completes
       }
     };
 
@@ -198,167 +200,172 @@ export default function InteractiveHomeClient({
 
   return (
     <>
-      {showWelcome && <WelcomePage />}
-      <div
-        className={`min-h-screen fancy-bg relative overflow-x-hidden ${
-          selectedAchievement ? "overflow-y-hidden" : ""
-        }`}
-      >
-        <Sidebar
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onSelectCategory={handleSelectCategory}
-          onSubmit={() => router.push("/submit")}
-        />
-        <Button
-          onClick={() => router.push("/submit")}
-          className="fixed top-8 right-4 z-50 bg-black text-white hover:bg-black/90 hidden sm:flex"
+      {showWelcome && <WelcomePage isLoading={!dataLoaded} />}
+      {/* Only render main content when data is loaded and welcome animation is complete */}
+      {(isReturning || (dataLoaded && showContent)) && (
+        <div
+          className={`min-h-screen fancy-bg relative overflow-x-hidden ${
+            selectedAchievement ? "overflow-y-hidden" : ""
+          }`}
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Submit Achievement
-        </Button>
-        <div className="relative z-0">
-          <main className="min-h-screen overflow-y-auto">
-            {/* Header */}
-            <div className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-md h-[120px] sm:h-[140px]">
-              <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
-                <div className="decorative-line mb-4"></div>
-                <div className="flex items-center justify-center gap-2 sm:gap-4 pl-8">
-                  <Logo />
-                  <h1 className="title-gradient text-3xl md:text-5xl lg:text-6xl font-display font-bold text-center tracking-wider">
-                    Wall of Fame
-                  </h1>
-                  <div className="relative w-10 h-10 md:w-20 md:h-20 ">
-                    <Image
-                      src="/muj-logo.jpg"
-                      alt="MUJ Logo"
-                      fill
-                      className="object-contain"
-                      priority
-                    />
+          <Sidebar
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={handleSelectCategory}
+            onSubmit={() => router.push("/submit")}
+          />
+          <Button
+            onClick={() => router.push("/submit")}
+            className="fixed top-8 right-4 z-50 bg-black text-white hover:bg-black/90 hidden sm:flex"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Submit Achievement
+          </Button>
+          <div className="relative z-0">
+            <main className="min-h-screen overflow-y-auto">
+              {/* Header */}
+              <div className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-md h-[120px] sm:h-[140px]">
+                <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
+                  <div className="decorative-line mb-4"></div>
+                  <div className="flex items-center justify-center gap-2 sm:gap-4 pl-8">
+                    <Logo />
+                    <h1 className="title-gradient text-3xl md:text-5xl lg:text-6xl font-display font-bold text-center tracking-wider">
+                      Wall of Fame
+                    </h1>
+                    <div className="relative w-10 h-10 md:w-20 md:h-20 ">
+                      <Image
+                        src="/muj-logo.jpg"
+                        alt="MUJ Logo"
+                        fill
+                        className="object-contain"
+                        priority
+                      />
+                    </div>
                   </div>
+                  <div className="decorative-line mt-4"></div>
                 </div>
-                <div className="decorative-line mt-4"></div>
               </div>
-            </div>
-            {/* Adjust the top padding back to original values */}
-            <div className="relative w-full min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] max-w-7xl mx-auto px-4 sm:px-4 pt-[140px] md:pt-[160px] ">
-              {/* For small screens */}
-              <div className="sm:hidden w-full">
-                <AnimatePresence mode="popLayout">
-                  {showContent && !isContentFadingOut && (
-                    <motion.div
-                      key={selectedCategory}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="w-full"
-                    >
-                      <div className="grid grid-cols-2 gap-4">
-                        {filteredAchievements.map((achievement, index) => (
-                          <motion.div
-                            key={achievement._id}
-                            initial={{ opacity: 0, y: 50 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{
-                              duration: isReturning ? 0 : 0.6,
-                              delay: isReturning ? 0 : index * 0.1,
-                            }}
-                          >
-                            <PolaroidCard
-                              achievement={achievement}
-                              onClick={() =>
-                                handleAchievementClick(achievement)
-                              }
-                            />
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              {/* Adjust the top padding back to original values */}
+              <div className="relative w-full min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] max-w-7xl mx-auto px-4 sm:px-4 pt-[140px] md:pt-[160px] ">
+                {/* For small screens */}
+                <div className="sm:hidden w-full">
+                  <AnimatePresence mode="popLayout">
+                    {showContent && !isContentFadingOut && (
+                      <motion.div
+                        key={selectedCategory}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="w-full"
+                      >
+                        <div className="grid grid-cols-2 gap-4">
+                          {filteredAchievements.map((achievement, index) => (
+                            <motion.div
+                              key={achievement._id}
+                              initial={{ opacity: 0, y: 50 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{
+                                duration: isReturning ? 0 : 0.6,
+                                delay: isReturning ? 0 : index * 0.1,
+                              }}
+                            >
+                              <PolaroidCard
+                                achievement={achievement}
+                                onClick={() =>
+                                  handleAchievementClick(achievement)
+                                }
+                              />
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                {/* For medium and larger screens */}
+                <div className="hidden sm:block relative w-full min-h-[calc(100vh-140px)]">
+                  <AnimatePresence mode="wait">
+                    {showContent && !isContentFadingOut && (
+                      <motion.div
+                        key={selectedCategory}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="relative w-full min-h-[calc(100vh-140px)]"
+                        style={{ willChange: "opacity" }}
+                      >
+                        {filteredAchievements.map((achievement, index) => {
+                          const position = calculatePosition(index);
+                          return position ? (
+                            <motion.div
+                              key={achievement._id}
+                              {...animationConfig}
+                              transition={{
+                                ...animationConfig.transition,
+                                delay: isReturning
+                                  ? 0
+                                  : index * staggerDuration,
+                              }}
+                              className="absolute transform"
+                              style={position}
+                            >
+                              <PolaroidCard
+                                achievement={achievement}
+                                onClick={() =>
+                                  handleAchievementClick(achievement)
+                                }
+                              />
+                            </motion.div>
+                          ) : null;
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
-              {/* For medium and larger screens */}
-              <div className="hidden sm:block relative w-full min-h-[calc(100vh-140px)]">
-                <AnimatePresence mode="wait">
-                  {showContent && !isContentFadingOut && (
-                    <motion.div
-                      key={selectedCategory}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="relative w-full min-h-[calc(100vh-140px)]"
-                      style={{ willChange: "opacity" }}
-                    >
-                      {filteredAchievements.map((achievement, index) => {
-                        const position = calculatePosition(index);
-                        return position ? (
-                          <motion.div
-                            key={achievement._id}
-                            {...animationConfig}
-                            transition={{
-                              ...animationConfig.transition,
-                              delay: isReturning ? 0 : index * staggerDuration,
-                            }}
-                            className="absolute transform"
-                            style={position}
-                          >
-                            <PolaroidCard
-                              achievement={achievement}
-                              onClick={() =>
-                                handleAchievementClick(achievement)
-                              }
-                            />
-                          </motion.div>
-                        ) : null;
-                      })}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </main>
-        </div>
-        <motion.div
-          onClick={() => setShowTeamModal(true)}
-          className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-600 to-pink-600 
+            </main>
+          </div>
+          <motion.div
+            onClick={() => setShowTeamModal(true)}
+            className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-600 to-pink-600 
             text-white px-6 py-3 rounded-full cursor-pointer shadow-lg hover:shadow-xl
             backdrop-blur-sm text-sm sm:text-base font-medium flex items-center gap-2
             border border-white/20"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="w-5 h-5 relative">
-            <Image
-              src="/logo.png"
-              alt="SDC Logo"
-              fill
-              className="object-contain"
-            />
-          </div>
-          Made by the SDC Team
-          <motion.div
-            className="absolute inset-0 bg-white rounded-full"
-            style={{ mixBlendMode: "overlay" }}
-            initial={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.5, opacity: 0.2 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
+          >
+            <div className="w-5 h-5 relative">
+              <Image
+                src="/logo.png"
+                alt="SDC Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            Made by the SDC Team
+            <motion.div
+              className="absolute inset-0 bg-white rounded-full"
+              style={{ mixBlendMode: "overlay" }}
+              initial={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.5, opacity: 0.2 }}
+              transition={{ duration: 0.3 }}
+            />
+          </motion.div>
+          <TeamModal
+            isOpen={showTeamModal}
+            onClose={() => setShowTeamModal(false)}
+            teamMembers={teamMembers}
           />
-        </motion.div>
-        <TeamModal
-          isOpen={showTeamModal}
-          onClose={() => setShowTeamModal(false)}
-          teamMembers={teamMembers}
-        />
-        <AchievementModal
-          achievement={selectedAchievement}
-          isOpen={!!selectedAchievement}
-          onClose={() => setSelectedAchievement(null)}
-        />
-      </div>
+          <AchievementModal
+            achievement={selectedAchievement}
+            isOpen={!!selectedAchievement}
+            onClose={() => setSelectedAchievement(null)}
+          />
+        </div>
+      )}
     </>
   );
 }
