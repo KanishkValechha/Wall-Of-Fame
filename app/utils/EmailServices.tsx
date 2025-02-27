@@ -21,7 +21,7 @@ interface OTPDocument {
 export class EmailService{
   static async sendEmail(email: string, subject: string, html: string): Promise<void> {
     await resend.emails.send({
-      from: 'send@vedicvarma.com',
+      from: 'WallOfFame@vedicvarma.com',
       to: email,
       subject,
       html
@@ -63,7 +63,7 @@ export class OTPService {
 
       // Send email
       await resend.emails.send({
-        from: 'send@vedicvarma.com',
+        from: 'WallOfFame@vedicvarma.com',
         to: email,
         subject: 'Your Verification Code',
         html: `
