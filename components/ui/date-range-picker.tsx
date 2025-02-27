@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -11,26 +13,29 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format } from "date-fns";
 
 interface DateRangePickerProps {
-  date?: DateRange;
+  date: DateRange | undefined;
   onDateChange: (date: DateRange | undefined) => void;
   className?: string;
   placeholder?: string;
+  align?: "start" | "center" | "end";
+  side?: "top" | "right" | "bottom" | "left";
 }
 
 export function DateRangePicker({
   date,
   onDateChange,
   className,
-  placeholder = "Pick a date range",
+  placeholder = "Select date range",
+  align = "start",
+  side = "bottom",
 }: DateRangePickerProps) {
-  const [isFromDate, setIsFromDate] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   return (
     <div className={cn("grid gap-2", className)}>
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -44,53 +49,53 @@ export function DateRangePicker({
             {date?.from ? (
               date.to ? (
                 <>
-                  <span className="text-xs text-muted-foreground mr-2">
-                    From:
-                  </span>
-                  {format(date.from, "LLL dd, y")}
-                  <span className="text-xs text-muted-foreground mx-2">
-                    To:
-                  </span>
+                  {format(date.from, "LLL dd, y")} -{" "}
                   {format(date.to, "LLL dd, y")}
                 </>
               ) : (
-                <>
-                  <span className="text-xs text-muted-foreground mr-2">
-                    From:
-                  </span>
-                  {format(date.from, "LLL dd, y")}
-                  <span className="text-xs text-muted-foreground mx-2">
-                    To:
-                  </span>
-                  Select end date
-                </>
+                format(date.from, "LLL dd, y")
               )
             ) : (
               <span>{placeholder}</span>
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <div className="px-4 py-2 border-b">
-            <h3 className="text-sm font-medium">
-              {isFromDate ? "Select start date" : "Select end date"}
-            </h3>
-          </div>
+        <PopoverContent className="w-auto p-0" align={align} side={side}>
           <Calendar
             initialFocus
             mode="range"
             defaultMonth={date?.from}
             selected={date}
-            onSelect={(newDate) => {
-              if (newDate?.from && !newDate.to) {
-                setIsFromDate(false);
-              } else {
-                setIsFromDate(true);
+            onSelect={(selectedDate) => {
+              onDateChange(selectedDate);
+              if (selectedDate?.from && selectedDate?.to) {
+                setIsOpen(false);
               }
-              onDateChange(newDate);
             }}
-            numberOfMonths={1} // Changed from 2 to 1
+            numberOfMonths={2}
+            className="rounded-md border"
           />
+          {date && (
+            <div className="flex items-center justify-between p-3 border-t">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  onDateChange(undefined);
+                }}
+              >
+                Clear
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setIsOpen(false);
+                }}
+              >
+                Apply
+              </Button>
+            </div>
+          )}
         </PopoverContent>
       </Popover>
     </div>
