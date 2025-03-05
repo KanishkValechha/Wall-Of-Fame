@@ -103,11 +103,6 @@ export default function SubmitPage() {
         <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 shadow-lg">
           <h1 className="text-3xl font-display mb-6">Submit Achievement</h1>
 
-        {message && (
-          <div className={`p-2 rounded-md text-center ${message.isError ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}>
-            {message.text}
-          </div>
-        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
@@ -224,6 +219,11 @@ export default function SubmitPage() {
               onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
             />
           </div>
+          {message && (
+          <div className={`p-2 rounded-md text-center ${message.isError ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}>
+            {message.text}
+          </div>
+        )}
 
           <Button type="submit" className="w-full">Submit Achievement</Button>
         </form>
