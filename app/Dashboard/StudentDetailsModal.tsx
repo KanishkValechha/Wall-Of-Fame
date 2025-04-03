@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { X, Check, MessageCircle } from "lucide-react";
+import { X, Check, MessageCircle, SendToBack } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Achievement } from "@/app/types/achievements";
+import { ApprovalRequestModal } from "./ApprovalRequestModal";
 
 interface StudentDetailsModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export function StudentDetailsModal({
   const [studentData, setStudentData] = useState<Achievement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false);
 
   // Reset states when modal closes
   useEffect(() => {
@@ -130,6 +132,23 @@ export function StudentDetailsModal({
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+
+  // Handle sending approval request
+  const handleSendApprovalRequest = async (
+    professorEmail: string,
+    message: string
+  ) => {
+    // This is just a frontend implementation - no real backend call
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        console.log("Sending approval request to:", professorEmail);
+        console.log("Message:", message);
+        console.log("Student:", student?.fullName);
+        console.log("Achievement ID:", student?._id);
+        resolve();
+      }, 1000);
+    });
+  };
 
   if (!student) return null;
 
@@ -243,6 +262,15 @@ export function StudentDetailsModal({
                     >
                       <MessageCircle className="w-5 h-5 mr-2" />
                       Add Remarks
+                    </Button>
+                    <Button
+                      size="default"
+                      variant="outline"
+                      className="w-full sm:w-auto bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 border-blue-200"
+                      onClick={() => setApprovalModalOpen(true)}
+                    >
+                      <SendToBack className="w-5 h-5 mr-2" />
+                      Send for Approval
                     </Button>
                   </div>
 
@@ -402,6 +430,16 @@ export function StudentDetailsModal({
               )}
             </div>
           </motion.div>
+
+          {/* Approval Request Modal */}
+          <ApprovalRequestModal
+            isOpen={approvalModalOpen}
+            onClose={() => setApprovalModalOpen(false)}
+            submissionId={student._id}
+            studentName={student.fullName}
+            achievementTitle={achievementTitle || student.title || ""}
+            onSendRequest={handleSendApprovalRequest}
+          />
         </>
       )}
     </AnimatePresence>
