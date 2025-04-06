@@ -59,6 +59,14 @@ type SortOption = {
   value: string;
 };
 
+type swapOptions={
+  id: string;
+  name: string;
+  fromIndex: number;
+  toIndex: number;
+  originalOrder: number;
+}
+
 const sortOptions: SortOption[] = [
   { label: "Newest first", value: "newest" },
   { label: "Oldest first", value: "oldest" },
@@ -366,8 +374,76 @@ const refreshData = async () => {
   const bgStyle = {
     background: `
       linear-gradient(to bottom right, rgba(255, 255, 255, 0.9), rgba(240, 240, 250, 0.9)),
-      url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 2 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23bbb9f2' fill-opacity='0.07' fill-rule='evenodd'/%3E%3C/svg%3E")
+      url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 2 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2z' fill='%23bbb9f2' fill-opacity='0.07' fill-rule='evenodd'/%3E%3C/svg%3E")
     `,
+  };
+
+  const handleReorder = (sectionType: 'top10' | 'unarchived' | 'archived', items: Achievement[]) => {
+    // Only allow reordering in Top 10 section
+    if (sectionType !== 'top10') {
+      return;
+    }
+    
+    console.log("Reordering items:", items.map(item => ({
+      id: item._id,
+      name: item.fullName,
+      order: item.order
+    })));
+    
+    // Find which item moved by comparing current positions with previous positions
+    const movedItem = items.find((item, index) => {
+      // Find this item in the current achievements state
+      const currentAchievement = achievements.find(a => a._id === item._id);
+      
+      // If this item has moved from its previous position
+      return currentAchievement && 
+        currentAchievement.order !== undefined && 
+        currentAchievement.order !== index + 1;
+    });
+    
+    if (!movedItem) {
+      console.log("No item was moved");
+      return;
+    }
+    
+    console.log("Item moved:", movedItem.fullName);
+    
+    // Now we need to determine where it moved to and what item it displaced
+    const oldIndex = achievements.findIndex(a => a._id === movedItem._id);
+    const newIndex = items.findIndex(item => item._id === movedItem._id);
+    
+    console.log(`Item moved from position ${oldIndex} to ${newIndex}`);
+    
+    // Create an updated achievements array with the new order
+    // We'll assign new order values to maintain a consistent sequence
+    const updatedAchievements = [...achievements];
+    
+    // Update the order for all affected items
+    items.forEach((item, index) => {
+      const achievementIndex = updatedAchievements.findIndex(a => a._id === item._id);
+      if (achievementIndex !== -1) {
+        const currentOrder = updatedAchievements[achievementIndex].order;
+        const newOrder = index + 1; // 1-based indexing for order
+        
+        if (currentOrder !== newOrder) {
+          console.log(`Updating order for "${item.fullName}" from ${currentOrder} to ${newOrder}`);
+          updatedAchievements[achievementIndex] = {
+            ...updatedAchievements[achievementIndex],
+            order: newOrder
+          };
+        }
+      }
+    });
+    
+    // Update the state with the new order
+    setAchievements(updatedAchievements);
+    
+    // Log the updated order for verification
+    console.log("New order:", items.map((item, index) => ({
+      name: item.fullName,
+      oldOrder: achievements.find(a => a._id === item._id)?.order,
+      newOrder: index + 1
+    })));
   };
 
   return (
@@ -564,6 +640,7 @@ const refreshData = async () => {
           onToggleTop10={handleToggleTop10}
           windowWidth={windowWidth}
           getApprovalStatus={getApprovalStatus}
+          onReorder={handleReorder}
         />
 
         {/* Show count of displayed achievements */}

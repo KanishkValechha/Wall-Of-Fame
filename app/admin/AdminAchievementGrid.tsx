@@ -3,6 +3,23 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Achievement } from "@/app/types/achievements";
 import AdminAchievementCard from "./AdminAchievementCard";
+import { 
+  DndContext, 
+  closestCenter, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
+  useSensors,
+  DragEndEvent 
+} from "@dnd-kit/core";
+import { 
+  arrayMove,
+  SortableContext, 
+  sortableKeyboardCoordinates, 
+  verticalListSortingStrategy,
+  horizontalListSortingStrategy
+} from "@dnd-kit/sortable";
+import { SortableItem } from "@/app/admin/SortableItem";
 
 interface AdminAchievementGridProps {
   achievements: Achievement[];
@@ -14,6 +31,7 @@ interface AdminAchievementGridProps {
   onToggleTop10: (achievement: Achievement) => void;
   windowWidth: number;
   getApprovalStatus: (achievement: Achievement) => 'rejected' | 'pending' | 'approved';
+  onReorder: (sectionType: 'top10' | 'unarchived' | 'archived', items: Achievement[]) => void;
 }
 
 export default function AdminAchievementGrid({
@@ -26,9 +44,22 @@ export default function AdminAchievementGrid({
   onToggleTop10,
   windowWidth,
   getApprovalStatus,
+  onReorder,
 }: AdminAchievementGridProps) {
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1024;
+
+  // Set up sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // Minimum drag distance for activation
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Helper function to separate achievements into sections
   const getSectionedAchievements = (
@@ -41,17 +72,29 @@ export default function AdminAchievementGrid({
         selectedCategory
       )
     ) {
-      return { top10: [], unarchived: achievements, archived: [] };
+      return { 
+        top10: [], 
+        unarchived: achievements.sort((a, b) => a.order - b.order), 
+        archived: [] 
+      };
     }
 
     // For specific categories, separate into three sections
-    const top10 = achievements.filter((a) => a.overAllTop10);
-    const unarchived = achievements.filter((a) => !a.overAllTop10 && !a.archived);
-    const archived = achievements.filter((a) => !a.overAllTop10 && a.archived);
+    const top10 = achievements
+      .filter((a) => a.overAllTop10)
+      .sort((a, b) => a.order - b.order);
+    
+    const unarchived = achievements
+      .filter((a) => !a.overAllTop10 && !a.archived)
+      .sort((a, b) => a.order - b.order);
+    
+    const archived = achievements
+      .filter((a) => !a.overAllTop10 && a.archived)
+      .sort((a, b) => a.order - b.order);
 
     return { top10, unarchived, archived };
   };
-
+  
   // Separate achievements into sections when viewing a specific category
   const { top10, unarchived, archived } = getSectionedAchievements(
     achievements,
@@ -61,6 +104,25 @@ export default function AdminAchievementGrid({
   const hasTop10Section = top10.length > 0;
   const hasUnarchivedSection = unarchived.length > 0;
   const hasArchivedSection = archived.length > 0;
+
+  // Handle drag end event
+  const handleDragEnd = (event: DragEndEvent, sectionType: 'top10' | 'unarchived' | 'archived', items: Achievement[]) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const activeIndex = items.findIndex((item) => item._id === active.id);
+      const overIndex = items.findIndex((item) => item._id === over.id);
+      
+      // console.log(items);
+      const newItems = arrayMove(items, activeIndex, overIndex);
+      // console.log(newItems);
+      
+      // Call the onReorder callback with the updated items
+      if (onReorder) {
+        onReorder(sectionType, newItems);
+      }
+    }
+  };
 
   // Mobile view with modern grid layout
   if (isMobile) {
@@ -84,15 +146,26 @@ export default function AdminAchievementGrid({
                   {hasTop10Section && (
                     <>
                       <SectionHeader title="Top 10 Achievements" />
-                      <div className="grid grid-cols-1 gap-6 mb-8">
-                        <AnimatedCards
-                          achievements={top10}
-                          onAchievementClick={onAchievementClick}
-                          onToggleArchive={onToggleArchive}
-                          onToggleTop10={onToggleTop10}
-                          getApprovalStatus={getApprovalStatus}
-                        />
-                      </div>
+                      <DndContext 
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(event) => handleDragEnd(event, 'top10', top10)}
+                      >
+                        <div className="grid grid-cols-1 gap-6 mb-8">
+                          <SortableContext 
+                            items={top10.map(a => a._id)} 
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <AnimatedCards
+                              achievements={top10}
+                              onAchievementClick={onAchievementClick}
+                              onToggleArchive={onToggleArchive}
+                              onToggleTop10={onToggleTop10}
+                              getApprovalStatus={getApprovalStatus}
+                            />
+                          </SortableContext>
+                        </div>
+                      </DndContext>
                       {(hasUnarchivedSection || hasArchivedSection) && (
                         <div className="border-t border-gray-100 my-8"></div>
                       )}
@@ -103,16 +176,27 @@ export default function AdminAchievementGrid({
                   {hasUnarchivedSection && (
                     <>
                       <SectionHeader title="Unarchived Achievements" />
-                      <div className="grid grid-cols-1 gap-6 mb-6">
-                        <AnimatedCards
-                          achievements={unarchived}
-                          onAchievementClick={onAchievementClick}
-                          onToggleArchive={onToggleArchive}
-                          onToggleTop10={onToggleTop10}
-                          startIndex={top10.length}
-                          getApprovalStatus={getApprovalStatus}
-                        />
-                      </div>
+                      <DndContext 
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
+                      >
+                        <div className="grid grid-cols-1 gap-6 mb-6">
+                          <SortableContext 
+                            items={unarchived.map(a => a._id)} 
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <AnimatedCards
+                              achievements={unarchived}
+                              onAchievementClick={onAchievementClick}
+                              onToggleArchive={onToggleArchive}
+                              onToggleTop10={onToggleTop10}
+                              startIndex={top10.length}
+                              getApprovalStatus={getApprovalStatus}
+                            />
+                          </SortableContext>
+                        </div>
+                      </DndContext>
                       {hasArchivedSection && (
                         <div className="border-t border-gray-100 my-8"></div>
                       )}
@@ -123,16 +207,27 @@ export default function AdminAchievementGrid({
                   {hasArchivedSection && (
                     <>
                       <SectionHeader title="Archived Achievements" />
-                      <div className="grid grid-cols-1 gap-6 mb-6">
-                        <AnimatedCards
-                          achievements={archived}
-                          onAchievementClick={onAchievementClick}
-                          onToggleArchive={onToggleArchive}
-                          onToggleTop10={onToggleTop10}
-                          startIndex={top10.length + unarchived.length}
-                          getApprovalStatus={getApprovalStatus}
-                        />
-                      </div>
+                      <DndContext 
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(event) => handleDragEnd(event, 'archived', archived)}
+                      >
+                        <div className="grid grid-cols-1 gap-6 mb-6">
+                          <SortableContext 
+                            items={archived.map(a => a._id)} 
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <AnimatedCards
+                              achievements={archived}
+                              onAchievementClick={onAchievementClick}
+                              onToggleArchive={onToggleArchive}
+                              onToggleTop10={onToggleTop10}
+                              startIndex={top10.length + unarchived.length}
+                              getApprovalStatus={getApprovalStatus}
+                            />
+                          </SortableContext>
+                        </div>
+                      </DndContext>
                     </>
                   )}
                 </>
@@ -143,6 +238,8 @@ export default function AdminAchievementGrid({
       </div>
     );
   }
+
+  const strategy = isTablet ? horizontalListSortingStrategy : horizontalListSortingStrategy;
 
   // Tablet view with 2 columns
   if (isTablet) {
@@ -166,15 +263,26 @@ export default function AdminAchievementGrid({
                   {hasTop10Section && (
                     <>
                       <SectionHeader title="Top 10 Achievements" />
-                      <div className="grid grid-cols-2 gap-6 mb-8">
-                        <AnimatedCards
-                          achievements={top10}
-                          onAchievementClick={onAchievementClick}
-                          onToggleArchive={onToggleArchive}
-                          onToggleTop10={onToggleTop10}
-                          getApprovalStatus={getApprovalStatus}
-                        />
-                      </div>
+                      <DndContext 
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(event) => handleDragEnd(event, 'top10', top10)}
+                      >
+                        <div className="grid grid-cols-2 gap-6 mb-8">
+                          <SortableContext 
+                            items={top10.map(a => a._id)} 
+                            strategy={strategy}
+                          >
+                            <AnimatedCards
+                              achievements={top10}
+                              onAchievementClick={onAchievementClick}
+                              onToggleArchive={onToggleArchive}
+                              onToggleTop10={onToggleTop10}
+                              getApprovalStatus={getApprovalStatus}
+                            />
+                          </SortableContext>
+                        </div>
+                      </DndContext>
                       {(hasUnarchivedSection || hasArchivedSection) && (
                         <div className="border-t border-gray-100 my-8"></div>
                       )}
@@ -185,16 +293,27 @@ export default function AdminAchievementGrid({
                   {hasUnarchivedSection && (
                     <>
                       <SectionHeader title="Unarchived Achievements" />
-                      <div className="grid grid-cols-2 gap-6 mb-6">
-                        <AnimatedCards
-                          achievements={unarchived}
-                          onAchievementClick={onAchievementClick}
-                          onToggleArchive={onToggleArchive}
-                          onToggleTop10={onToggleTop10}
-                          startIndex={top10.length}
-                          getApprovalStatus={getApprovalStatus}
-                        />
-                      </div>
+                      <DndContext 
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
+                      >
+                        <div className="grid grid-cols-2 gap-6 mb-6">
+                          <SortableContext 
+                            items={unarchived.map(a => a._id)} 
+                            strategy={strategy}
+                          >
+                            <AnimatedCards
+                              achievements={unarchived}
+                              onAchievementClick={onAchievementClick}
+                              onToggleArchive={onToggleArchive}
+                              onToggleTop10={onToggleTop10}
+                              startIndex={top10.length}
+                              getApprovalStatus={getApprovalStatus}
+                            />
+                          </SortableContext>
+                        </div>
+                      </DndContext>
                       {hasArchivedSection && (
                         <div className="border-t border-gray-100 my-8"></div>
                       )}
@@ -205,16 +324,27 @@ export default function AdminAchievementGrid({
                   {hasArchivedSection && (
                     <>
                       <SectionHeader title="Archived Achievements" />
-                      <div className="grid grid-cols-2 gap-6 mb-6">
-                        <AnimatedCards
-                          achievements={archived}
-                          onAchievementClick={onAchievementClick}
-                          onToggleArchive={onToggleArchive}
-                          onToggleTop10={onToggleTop10}
-                          startIndex={top10.length + unarchived.length}
-                          getApprovalStatus={getApprovalStatus}
-                        />
-                      </div>
+                      <DndContext 
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(event) => handleDragEnd(event, 'archived', archived)}
+                      >
+                        <div className="grid grid-cols-2 gap-6 mb-6">
+                          <SortableContext 
+                            items={archived.map(a => a._id)} 
+                            strategy={strategy}
+                          >
+                            <AnimatedCards
+                              achievements={archived}
+                              onAchievementClick={onAchievementClick}
+                              onToggleArchive={onToggleArchive}
+                              onToggleTop10={onToggleTop10}
+                              startIndex={top10.length + unarchived.length}
+                              getApprovalStatus={getApprovalStatus}
+                            />
+                          </SortableContext>
+                        </div>
+                      </DndContext>
                     </>
                   )}
                 </>
@@ -247,15 +377,26 @@ export default function AdminAchievementGrid({
                 {hasTop10Section && (
                   <>
                     <SectionHeader title="Top 10 Achievements" />
-                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-                      <AnimatedCards
-                        achievements={top10}
-                        onAchievementClick={onAchievementClick}
-                        onToggleArchive={onToggleArchive}
-                        onToggleTop10={onToggleTop10}
-                        getApprovalStatus={getApprovalStatus}
-                      />
-                    </div>
+                    <DndContext 
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={(event) => handleDragEnd(event, 'top10', top10)}
+                    >
+                      <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                        <SortableContext 
+                          items={top10.map(a => a._id)} 
+                          strategy={strategy}
+                        >
+                          <AnimatedCards
+                            achievements={top10}
+                            onAchievementClick={onAchievementClick}
+                            onToggleArchive={onToggleArchive}
+                            onToggleTop10={onToggleTop10}
+                            getApprovalStatus={getApprovalStatus}
+                          />
+                        </SortableContext>
+                      </div>
+                    </DndContext>
                     {(hasUnarchivedSection || hasArchivedSection) && (
                       <div className="border-t border-gray-100 my-12"></div>
                     )}
@@ -266,16 +407,27 @@ export default function AdminAchievementGrid({
                 {hasUnarchivedSection && (
                   <>
                     <SectionHeader title="Unarchived Achievements" />
-                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
-                      <AnimatedCards
-                        achievements={unarchived}
-                        onAchievementClick={onAchievementClick}
-                        onToggleArchive={onToggleArchive}
-                        onToggleTop10={onToggleTop10}
-                        startIndex={top10.length}
-                        getApprovalStatus={getApprovalStatus}
-                      />
-                    </div>
+                    <DndContext 
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
+                    >
+                      <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+                        <SortableContext 
+                          items={unarchived.map(a => a._id)} 
+                          strategy={strategy}
+                        >
+                          <AnimatedCards
+                            achievements={unarchived}
+                            onAchievementClick={onAchievementClick}
+                            onToggleArchive={onToggleArchive}
+                            onToggleTop10={onToggleTop10}
+                            startIndex={top10.length}
+                            getApprovalStatus={getApprovalStatus}
+                          />
+                        </SortableContext>
+                      </div>
+                    </DndContext>
                     {hasArchivedSection && (
                       <div className="border-t border-gray-100 my-12"></div>
                     )}
@@ -286,16 +438,27 @@ export default function AdminAchievementGrid({
                 {hasArchivedSection && (
                   <>
                     <SectionHeader title="Archived Achievements" />
-                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
-                      <AnimatedCards
-                        achievements={archived}
-                        onAchievementClick={onAchievementClick}
-                        onToggleArchive={onToggleArchive}
-                        onToggleTop10={onToggleTop10}
-                        startIndex={top10.length + unarchived.length}
-                        getApprovalStatus={getApprovalStatus}
-                      />
-                    </div>
+                    <DndContext 
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={(event) => handleDragEnd(event, 'archived', archived)}
+                    >
+                      <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+                        <SortableContext 
+                          items={archived.map(a => a._id)} 
+                          strategy={strategy}
+                        >
+                          <AnimatedCards
+                            achievements={archived}
+                            onAchievementClick={onAchievementClick}
+                            onToggleArchive={onToggleArchive}
+                            onToggleTop10={onToggleTop10}
+                            startIndex={top10.length + unarchived.length}
+                            getApprovalStatus={getApprovalStatus}
+                          />
+                        </SortableContext>
+                      </div>
+                    </DndContext>
                   </>
                 )}
               </>
@@ -326,24 +489,25 @@ function AnimatedCards({
   return (
     <>
       {achievements.map((achievement, index) => (
-        <motion.div
-          key={achievement._id}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.5,
-            delay: (index + startIndex) * 0.05,
-            ease: [0.25, 0.1, 0.25, 1],
-          }}
-        >
-          <AdminAchievementCard
-            achievement={achievement}
-            onClick={() => onAchievementClick(achievement)}
-            onToggleArchive={() => onToggleArchive(achievement)}
-            onToggleTop10={() => onToggleTop10(achievement)}
-            approvalStatus={getApprovalStatus(achievement)}
-          />
-        </motion.div>
+        <SortableItem key={achievement._id} id={achievement._id}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.5,
+              delay: (index + startIndex) * 0.05,
+              ease: [0.25, 0.1, 0.25, 1],
+            }}
+          >
+            <AdminAchievementCard
+              achievement={achievement}
+              onClick={() => onAchievementClick(achievement)}
+              onToggleArchive={() => onToggleArchive(achievement)}
+              onToggleTop10={() => onToggleTop10(achievement)}
+              approvalStatus={getApprovalStatus(achievement)}
+            />
+          </motion.div>
+        </SortableItem>
       ))}
     </>
   );

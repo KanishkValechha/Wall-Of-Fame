@@ -1,5 +1,5 @@
 export interface Achievement {
-    _id: number;
+    _id: string;
     fullName: string;
     registrationNumber: string;
     mobileNumber: string;
@@ -18,5 +18,6 @@ export interface Achievement {
     archived: boolean;
     title: string;
     description: string;
+    order: number;
   }
   

@@ -13,6 +13,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface AdminAchievementCardProps {
   achievement: Achievement;
@@ -29,31 +31,56 @@ function AdminAchievementCard({
   onToggleTop10,
   approvalStatus,
 }: AdminAchievementCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: achievement._id,
+    data: achievement,
+  });
+
+  const sortableStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 'auto',
+    opacity: isDragging ? 0.8 : 1,
+  };
+
   return (
     <motion.div
+      ref={setNodeRef}
+      {...attributes}
       whileHover={{
         y: -5,
         transition: { duration: 0.2 },
       }}
       className="relative rounded-xl overflow-hidden cursor-pointer bg-white"
       style={{
+        ...sortableStyle,
         width: "100%",
         aspectRatio: "3/4",
         boxShadow:
           "0 10px 30px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.06)",
       }}
     >
-      {/* Top 10 badge */}
-      {/* {achievement.overAllTop10 && (
-        <div className="absolute top-3 right-3 z-30">
-          <div className="h-8 w-8 rounded-full bg-amber-400 flex items-center justify-center shadow-lg">
-            <Star className="h-4 w-4 text-white fill-white" />
-          </div>
+      {/* Drag handle */}
+      <div 
+        className="absolute top-3 left-3 z-40 bg-white/30 backdrop-blur-sm p-1 rounded-md"
+        {...listeners}
+      >
+        <div className="w-5 h-5 flex flex-col justify-between">
+          <div className="h-0.5 w-full bg-white rounded-full"></div>
+          <div className="h-0.5 w-full bg-white rounded-full"></div>
+          <div className="h-0.5 w-full bg-white rounded-full"></div>
         </div>
-      )} */}
+      </div>
 
-      {/* Status indicator */}
-      <div className="absolute top-3 left-3 z-30">
+      {/* Status indicator - moved right to accommodate drag handle */}
+      <div className="absolute top-3 left-10 z-30">
         <div
           className={cn(
             "h-2 w-2 rounded-full",
@@ -66,6 +93,15 @@ function AdminAchievementCard({
           )}
         />
       </div>
+
+      {/* Top 10 badge */}
+      {(
+        <div className="absolute top-3 right-3 z-10">
+          <div className="h-8 w-8 rounded-full bg-amber-400 flex items-center justify-center shadow-lg">
+            <p>{achievement.order}</p>
+          </div>
+        </div>
+      )}
 
       {/* Image with gradient overlay */}
       <div className="absolute inset-0">
@@ -172,7 +208,7 @@ function AdminAchievementCard({
       </div>
 
       {/* Card overlay - makes the entire card clickable for edit */}
-      <div className="absolute inset-0 z-20" onClick={onClick} />
+      <div className="absolute inset-0 z-9" onClick={onClick} />
     </motion.div>
   );
 }

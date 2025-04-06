@@ -21,36 +21,10 @@ const adminCategories = [
   ...categories,
 ];
 
-// Sample dummy data for achievements
-const dummyAchievements: Achievement[] = Array(20)
-  .fill(null)
-  .map((_, i) => ({
-    _id: i + 1,
-    fullName: `Student ${i + 1}`,
-    registrationNumber: `REG${200000 + i}`,
-    mobileNumber: `+91 9876${543210 + i}`.substring(0, 13),
-    studentMail: `student${i + 1}@muj.edu.in`,
-    achievementCategory: categories[i % categories.length],
-    professorName: `Dr. Professor ${(i % 5) + 1}`,
-    professorEmail: `professor${(i % 5) + 1}@muj.edu.in`,
-    userImage: { data: "", contentType: "image/jpeg" },
-    imageUrl: `https://source.unsplash.com/random/300x300?portrait&sig=${i}`,
-    certificateProof: { data: "", contentType: "application/pdf" },
-    certificateUrl: "",
-    submissionDate: new Date(2025, 3, (i % 30) + 1),
-    remarks: i % 5 === 0 ? "Outstanding achievement" : "Good work",
-    approved: i % 3 === 0 ? null : new Date(2025, 3, (i % 30) + 2),
-    overAllTop10: i < 10,
-    archived: i >= 15,
-    title: `Achievement Title ${i + 1}`,
-    description: `This is a detailed description of the achievement ${
-      i + 1
-    }. The student participated in a prestigious event and secured a top position.`,
-  }));
 
 export default function AdminPanel() {
   const [achievements, setAchievements] =
-    useState<Achievement[]>(dummyAchievements);
+    useState<Achievement[]>([] as Achievement[]);
   const [selectedCategory, setSelectedCategory] = useState(adminCategories[0]);
   const [selectedAchievement, setSelectedAchievement] =
     useState<Achievement | null>(null);
