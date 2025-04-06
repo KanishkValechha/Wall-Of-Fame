@@ -36,33 +36,6 @@ const adminCategories = [
   ...categories,
 ];
 
-// Sample dummy data for achievements
-const dummyAchievements: Achievement[] = Array(20)
-  .fill(null)
-  .map((_, i) => ({
-    _id: i + 1,
-    fullName: `Student ${i + 1}`,
-    registrationNumber: `REG${200000 + i}`,
-    mobileNumber: `+91 9876${543210 + i}`.substring(0, 13),
-    studentMail: `student${i + 1}@muj.edu.in`,
-    achievementCategory: categories[i % categories.length],
-    professorName: `Dr. Professor ${(i % 5) + 1}`,
-    professorEmail: `professor${(i % 5) + 1}@muj.edu.in`,
-    userImage: { data: "", contentType: "image/jpeg" },
-    imageUrl: `https://source.unsplash.com/random/300x300?portrait&sig=${i}`,
-    certificateProof: { data: "", contentType: "application/pdf" },
-    certificateUrl: "",
-    submissionDate: new Date(2025, 3, (i % 30) + 1),
-    remarks: i % 5 === 0 ? "Outstanding achievement" : "Good work",
-    approved: i % 3 === 0 ? null : new Date(2025, 3, (i % 30) + 2),
-    overAllTop10: i < 10,
-    archived: i >= 15,
-    title: `Achievement Title ${i + 1}`,
-    description: `This is a detailed description of the achievement ${
-      i + 1
-    }. The student participated in a prestigious event and secured a top position.`,
-  }));
-
 // Sort options
 type SortOption = {
   label: string;
@@ -78,7 +51,7 @@ const sortOptions: SortOption[] = [
 
 export default function AdminPanel() {
   const [achievements, setAchievements] =
-    useState<Achievement[]>(dummyAchievements);
+    useState<Achievement[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(adminCategories[0]);
   const [selectedAchievement, setSelectedAchievement] =
     useState<Achievement | null>(null);
@@ -108,91 +81,134 @@ export default function AdminPanel() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Remove dummyAchievements and fetch real data from backend
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/achievements");
+        if (!response.ok) {
+          throw new Error("Failed to fetch achievements");
+        }
+        const data: Achievement[] = await response.json().then((res) => res.achievements);
+
+        // Ensure the data is an array and process images
+        if (Array.isArray(data)) {
+          const processedData = data.map((achievement) => {
+            if (achievement.userImage?.data) {
+              achievement.imageUrl = `data:${achievement.userImage.contentType};base64,${achievement.userImage.data}`;
+            }
+            return achievement;
+          });
+          setAchievements(processedData);
+        } else {
+          console.error("Invalid data format: Expected an array");
+          setAchievements([]); // Fallback to an empty array
+        }
+      } catch (error) {
+        console.error("Error fetching achievements:", error);
+        setAchievements([]); // Fallback to an empty array in case of error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAchievements();
+  }, []);
+
   // Filter achievements based on selected category and search query
   const filteredAchievements = useMemo(() => {
     let filtered = achievements;
-
+    
     // Filter by search query first
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (a) =>
-          a.fullName.toLowerCase().includes(query) ||
-          a.title.toLowerCase().includes(query) ||
-          a.registrationNumber.toLowerCase().includes(query)
+// Filter by search query first
+if (searchQuery) {
+  const query = searchQuery.toLowerCase();
+  filtered = filtered.filter((a) => {
+    try {
+      return (
+        a.fullName?.toLowerCase().includes(query) ||
+        a.title?.toLowerCase().includes(query) ||
+        a.description?.toLowerCase().includes(query) ||
+        a.registrationNumber?.toLowerCase().includes(query)
       );
+    } catch (error) {
+      console.error("Error during filtering for item:", a);
+      console.error("Error:", error);
+      return false; // Exclude items that cause errors
     }
+  });
+}
+      // Filter by category
+      if (selectedCategory === "Top 10") {
+        filtered = filtered.filter((a) => a.overAllTop10 && !a.archived);
+      } else if (selectedCategory === "Pending Students") {
+        filtered = filtered.filter((a) => !a.approved && !a.archived);
+      } else if (selectedCategory === "Archived") {
+        filtered = filtered.filter((a) => a.archived);
+      } else if (selectedCategory === "All Achievements") {
+        filtered = filtered.filter((a) => !a.archived);
 
-    // Filter by category
-    if (selectedCategory === "Top 10") {
-      filtered = filtered.filter((a) => a.overAllTop10 && !a.archived);
-    } else if (selectedCategory === "Pending Students") {
-      filtered = filtered.filter((a) => !a.approved && !a.archived);
-    } else if (selectedCategory === "Archived") {
-      filtered = filtered.filter((a) => a.archived);
-    } else if (selectedCategory === "All Achievements") {
-      filtered = filtered.filter((a) => !a.archived);
+        // Apply additional filters if selected
+        if (activeFilters.includes("pending")) {
+          filtered = filtered.filter((a) => !a.approved);
+        }
+        if (activeFilters.includes("top10")) {
+          filtered = filtered.filter((a) => a.overAllTop10);
+        }
 
-      // Apply additional filters if selected
-      if (activeFilters.includes("pending")) {
-        filtered = filtered.filter((a) => !a.approved);
-      }
-      if (activeFilters.includes("top10")) {
-        filtered = filtered.filter((a) => a.overAllTop10);
-      }
+        // Sort based on selection
+        if (sortBy === "newest") {
+          filtered.sort((a, b) => {
+            const dateA = new Date(a.approved || a.submissionDate).getTime();
+            const dateB = new Date(b.approved || b.submissionDate).getTime();
+            return dateB - dateA;
+          });
+        } else if (sortBy === "oldest") {
+          filtered.sort((a, b) => {
+            const dateA = new Date(a.approved || a.submissionDate).getTime();
+            const dateB = new Date(b.approved || b.submissionDate).getTime();
+            return dateA - dateB;
+          });
+        } else if (sortBy === "name_asc") {
+          filtered.sort((a, b) => a.fullName.localeCompare(b.fullName));
+        } else if (sortBy === "name_desc") {
+          filtered.sort((a, b) => b.fullName.localeCompare(a.fullName));
+        }
+      } else {
+        // For specific categories
+        filtered = filtered.filter(
+          (a) => a.achievementCategory === selectedCategory && !a.archived
+        );
 
-      // Sort based on selection
-      if (sortBy === "newest") {
+        // Apply additional sorting
+        if (sortBy === "newest") {
+          filtered.sort((a, b) => {
+            const dateA = new Date(a.approved || a.submissionDate).getTime();
+            const dateB = new Date(b.approved || b.submissionDate).getTime();
+            return dateB - dateA;
+          });
+        } else if (sortBy === "oldest") {
+          filtered.sort((a, b) => {
+            const dateA = new Date(a.approved || a.submissionDate).getTime();
+            const dateB = new Date(b.approved || b.submissionDate).getTime();
+            return dateA - dateB;
+          });
+        } else if (sortBy === "name_asc") {
+          filtered.sort((a, b) => a.fullName.localeCompare(b.fullName));
+        } else if (sortBy === "name_desc") {
+          filtered.sort((a, b) => b.fullName.localeCompare(a.fullName));
+        }
+
+        // Make sure Top 10 are at the beginning
         filtered.sort((a, b) => {
-          const dateA = new Date(a.approved || a.submissionDate).getTime();
-          const dateB = new Date(b.approved || b.submissionDate).getTime();
-          return dateB - dateA;
+          if (a.overAllTop10 && !b.overAllTop10) return -1;
+          if (!a.overAllTop10 && b.overAllTop10) return 1;
+          return 0;
         });
-      } else if (sortBy === "oldest") {
-        filtered.sort((a, b) => {
-          const dateA = new Date(a.approved || a.submissionDate).getTime();
-          const dateB = new Date(b.approved || b.submissionDate).getTime();
-          return dateA - dateB;
-        });
-      } else if (sortBy === "name_asc") {
-        filtered.sort((a, b) => a.fullName.localeCompare(b.fullName));
-      } else if (sortBy === "name_desc") {
-        filtered.sort((a, b) => b.fullName.localeCompare(a.fullName));
-      }
-    } else {
-      // For specific categories
-      filtered = filtered.filter(
-        (a) => a.achievementCategory === selectedCategory && !a.archived
-      );
-
-      // Apply additional sorting
-      if (sortBy === "newest") {
-        filtered.sort((a, b) => {
-          const dateA = new Date(a.approved || a.submissionDate).getTime();
-          const dateB = new Date(b.approved || b.submissionDate).getTime();
-          return dateB - dateA;
-        });
-      } else if (sortBy === "oldest") {
-        filtered.sort((a, b) => {
-          const dateA = new Date(a.approved || a.submissionDate).getTime();
-          const dateB = new Date(b.approved || b.submissionDate).getTime();
-          return dateA - dateB;
-        });
-      } else if (sortBy === "name_asc") {
-        filtered.sort((a, b) => a.fullName.localeCompare(b.fullName));
-      } else if (sortBy === "name_desc") {
-        filtered.sort((a, b) => b.fullName.localeCompare(a.fullName));
       }
 
-      // Make sure Top 10 are at the beginning
-      filtered.sort((a, b) => {
-        if (a.overAllTop10 && !b.overAllTop10) return -1;
-        if (!a.overAllTop10 && b.overAllTop10) return 1;
-        return 0;
-      });
-    }
-
-    return filtered;
+      return filtered;
   }, [achievements, selectedCategory, searchQuery, sortBy, activeFilters]);
 
   const handleSelectCategory = (category: string) => {
@@ -242,40 +258,74 @@ export default function AdminPanel() {
   };
 
   const handleToggleTop10 = (achievement: Achievement) => {
-    setAchievements((prev) =>
-      prev.map((a) => {
+    setAchievements((prev) => {
+      // Check if we're trying to add to top 10
+      if (!achievement.overAllTop10) {
+        const top10Count = prev.filter((item) => item.overAllTop10).length;
+        if (top10Count >= 10) {
+          alert("You can only have 10 top 10 achievements. Please remove one before adding another.");
+          return prev; // Return unchanged state
+        }
+      }
+  
+      // If we're here, we can proceed with the toggle
+      return prev.map((a) => {
         if (a._id === achievement._id) {
+          //SEND A POST REQUEST TO /api/achievements to update the elemnet with _id same to toggle its overalltop10
+          fetch(`/api/achievements`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ _id: a._id, overAllTop10: !a.overAllTop10 }),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Failed to update achievement");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              console.log("Achievement updated successfully:", data);
+            })
+            .catch((error) => {
+              console.error("Error updating achievement:", error);
+            });
           return { ...a, overAllTop10: !a.overAllTop10 };
         }
-        // If adding to top 10 and we have 10 already, remove the last one
-        if (!achievement.overAllTop10 && a.overAllTop10) {
-          const top10Count = prev.filter((item) => item.overAllTop10).length;
-          if (top10Count >= 10) {
-            // Find the oldest top 10 item to remove
-            const oldestTop10 = [...prev]
-              .filter((item) => item.overAllTop10)
-              .sort(
-                (a, b) =>
-                  new Date(a.approved || a.submissionDate).getTime() -
-                  new Date(b.approved || b.submissionDate).getTime()
-              )[0];
-
-            if (oldestTop10._id === a._id) {
-              return { ...a, overAllTop10: false };
-            }
-          }
-        }
         return a;
-      })
-    );
+      });
+    });
   };
-
-  const refreshData = () => {
+  
+const refreshData = async () => {
     setLoading(true);
-    // In a real application, this would be an API call
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/achievements");
+      if (!response.ok) {
+        throw new Error("Failed to fetch achievements");
+      }
+      const data: Achievement[] = await response.json().then((res) => res.achievements);
+
+      // Ensure the data is an array and process images
+      if (Array.isArray(data)) {
+        const processedData = data.map((achievement) => {
+          if (achievement.userImage?.data) {
+            achievement.imageUrl = `data:${achievement.userImage.contentType};base64,${achievement.userImage.data}`;
+          }
+          return achievement;
+        });
+        setAchievements(processedData);
+      } else {
+        console.error("Invalid data format: Expected an array");
+        setAchievements([]); // Fallback to an empty array
+      }
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      setAchievements([]); // Fallback to an empty array in case of error
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const exportAchievements = () => {
