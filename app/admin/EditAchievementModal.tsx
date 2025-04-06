@@ -67,11 +67,26 @@ export default function EditAchievementModal({
   };
 
   const handleSave = () => {
-    onSave(editedAchievement);
+    // Create an object with only the _id and modified fields
+    const changedFields: Partial<Record<keyof Achievement, Achievement[keyof Achievement]>> = { _id: achievement._id };
+    
+    // Compare original and edited achievement to find changed fields
+    Object.keys(editedAchievement).forEach((key) => {
+      const typedKey = key as keyof Achievement;
+      if (achievement[typedKey] !== editedAchievement[typedKey]) {
+        changedFields[typedKey] = editedAchievement[typedKey];
+      }
+    });
+    
+    // Send only the changed fields to the parent component
+    onSave(changedFields as Achievement);
+    // Don't call onClose() here as it will be handled by the parent
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) onClose(); // Only handle the closing event
+    }}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Achievement</DialogTitle>
@@ -278,7 +293,10 @@ export default function EditAchievementModal({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <Button onClick={(e) => {
+            e.preventDefault(); // Prevent any default dialog behavior
+            handleSave();
+          }}>Save Changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

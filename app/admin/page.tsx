@@ -36,6 +36,23 @@ const adminCategories = [
   ...categories,
 ];
 
+// Rejection date constant - matches the specific timestamp used to mark rejections
+const REJECTION_DATE = new Date("1999-12-31T18:30:00.000Z");
+
+// Helper function to determine if an achievement is rejected, pending, or approved
+const getApprovalStatus = (achievement: Achievement): 'rejected' | 'pending' | 'approved' => {
+  if (typeof achievement.approved === "string") {
+    achievement.approved = new Date(achievement.approved);}
+  if (achievement.approved instanceof Date && 
+      Math.abs(achievement.approved.getTime() - REJECTION_DATE.getTime()) < 10000) { // Allow 16 min tolerance
+    return 'rejected';
+  } else if (achievement.approved === null) {
+    return 'pending';
+  } else {
+    return 'approved';
+  }
+};
+
 // Sort options
 type SortOption = {
   label: string;
@@ -61,7 +78,7 @@ export default function AdminPanel() {
     "archive" | "unarchive"
   >("archive");
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [windowWidth, setWindowWidth] = useState(0);
   const [sortBy, setSortBy] = useState<string>("newest");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -82,37 +99,39 @@ export default function AdminPanel() {
   }, []);
 
   // Remove dummyAchievements and fetch real data from backend
-  useEffect(() => {
-    const fetchAchievements = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch("/api/achievements");
-        if (!response.ok) {
-          throw new Error("Failed to fetch achievements");
-        }
-        const data: Achievement[] = await response.json().then((res) => res.achievements);
-
-        // Ensure the data is an array and process images
-        if (Array.isArray(data)) {
-          const processedData = data.map((achievement) => {
-            if (achievement.userImage?.data) {
-              achievement.imageUrl = `data:${achievement.userImage.contentType};base64,${achievement.userImage.data}`;
-            }
-            return achievement;
-          });
-          setAchievements(processedData);
-        } else {
-          console.error("Invalid data format: Expected an array");
-          setAchievements([]); // Fallback to an empty array
-        }
-      } catch (error) {
-        console.error("Error fetching achievements:", error);
-        setAchievements([]); // Fallback to an empty array in case of error
-      } finally {
-        setLoading(false);
+  const fetchAchievements = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/achievements");
+      if (!response.ok) {
+        throw new Error("Failed to fetch achievements");
       }
-    };
+      const data: Achievement[] = await response.json().then((res) => res.achievements);
 
+      // Ensure the data is an array and process images
+      if (Array.isArray(data)) {
+        const processedData = data.map((achievement) => {
+          if (achievement.userImage?.data) {
+            achievement.imageUrl = `data:${achievement.userImage.contentType};base64,${achievement.userImage.data}`;
+          }
+          return achievement;
+        });
+        setAchievements(processedData);
+      } else {
+        console.error("Invalid data format: Expected an array");
+        setAchievements([]); // Fallback to an empty array
+      }
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      setAchievements([]); // Fallback to an empty array in case of error
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Update the useEffect to show loading state
+  useEffect(() => {
+    setLoading(true); // Start loading state immediately
     fetchAchievements();
   }, []);
 
@@ -143,15 +162,18 @@ if (searchQuery) {
       if (selectedCategory === "Top 10") {
         filtered = filtered.filter((a) => a.overAllTop10 && !a.archived);
       } else if (selectedCategory === "Pending Students") {
-        filtered = filtered.filter((a) => !a.approved && !a.archived);
+        filtered = filtered.filter((a) => getApprovalStatus(a) === 'pending' && !a.archived);
       } else if (selectedCategory === "Archived") {
         filtered = filtered.filter((a) => a.archived);
       } else if (selectedCategory === "All Achievements") {
-        filtered = filtered.filter((a) => !a.archived);
+        filtered = filtered.filter((a) => true);
 
         // Apply additional filters if selected
         if (activeFilters.includes("pending")) {
-          filtered = filtered.filter((a) => !a.approved);
+          filtered = filtered.filter((a) => getApprovalStatus(a) === 'pending');
+        }
+        if (activeFilters.includes("rejected")) {
+          filtered = filtered.filter((a) => getApprovalStatus(a) === 'rejected');
         }
         if (activeFilters.includes("top10")) {
           filtered = filtered.filter((a) => a.overAllTop10);
@@ -227,9 +249,19 @@ if (searchQuery) {
 
   const handleEditAchievement = (updatedAchievement: Achievement) => {
     setAchievements((prev) =>
-      prev.map((a) =>
-        a._id === updatedAchievement._id ? updatedAchievement : a
-      )
+      prev.map((a) =>{
+        if (a._id === updatedAchievement._id) {
+          fetch(`/api/achievements`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedAchievement),
+          })
+          return { ...a, ...updatedAchievement };
+        }
+        return a;
+      })
     );
     setIsEditModalOpen(false);
     setSelectedAchievement(null);
@@ -247,6 +279,13 @@ if (searchQuery) {
     setAchievements((prev) =>
       prev.map((a) => {
         if (a._id === selectedAchievement._id) {
+          fetch(`/api/achievements`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ _id: a._id, archived: archiveOperation === "archive" }),
+          })
           return { ...a, archived: archiveOperation === "archive" };
         }
         return a;
@@ -299,34 +338,9 @@ if (searchQuery) {
   };
   
 const refreshData = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/achievements");
-      if (!response.ok) {
-        throw new Error("Failed to fetch achievements");
-      }
-      const data: Achievement[] = await response.json().then((res) => res.achievements);
-
-      // Ensure the data is an array and process images
-      if (Array.isArray(data)) {
-        const processedData = data.map((achievement) => {
-          if (achievement.userImage?.data) {
-            achievement.imageUrl = `data:${achievement.userImage.contentType};base64,${achievement.userImage.data}`;
-          }
-          return achievement;
-        });
-        setAchievements(processedData);
-      } else {
-        console.error("Invalid data format: Expected an array");
-        setAchievements([]); // Fallback to an empty array
-      }
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-      setAchievements([]); // Fallback to an empty array in case of error
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Simply call the existing fetchAchievements function
+  fetchAchievements();
+};
 
   const exportAchievements = () => {
     const dataStr =
@@ -352,7 +366,7 @@ const refreshData = async () => {
   const bgStyle = {
     background: `
       linear-gradient(to bottom right, rgba(255, 255, 255, 0.9), rgba(240, 240, 250, 0.9)),
-      url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23bbb9f2' fill-opacity='0.07' fill-rule='evenodd'/%3E%3C/svg%3E")
+      url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 2 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23bbb9f2' fill-opacity='0.07' fill-rule='evenodd'/%3E%3C/svg%3E")
     `,
   };
 
@@ -431,6 +445,18 @@ const refreshData = async () => {
                       <div className="flex items-center space-x-2 mt-2">
                         <input
                           type="checkbox"
+                          id="filter-rejected"
+                          checked={activeFilters.includes("rejected")}
+                          onChange={() => toggleFilter("rejected")}
+                          className="rounded border-gray-300"
+                        />
+                        <label htmlFor="filter-rejected" className="text-sm">
+                          Rejected only
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <input
+                          type="checkbox"
                           id="filter-top10"
                           checked={activeFilters.includes("top10")}
                           onChange={() => toggleFilter("top10")}
@@ -453,7 +479,8 @@ const refreshData = async () => {
                         className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-2 py-1"
                         onClick={() => toggleFilter(filter)}
                       >
-                        {filter === "pending" ? "Pending" : "Top 10"}
+                        {filter === "pending" ? "Pending" : 
+                         filter === "rejected" ? "Rejected" : "Top 10"}
                         <X size={12} className="cursor-pointer" />
                       </Badge>
                     ))}
@@ -519,7 +546,8 @@ const refreshData = async () => {
                   className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-2 py-1"
                   onClick={() => toggleFilter(filter)}
                 >
-                  {filter === "pending" ? "Pending" : "Top 10"}
+                  {filter === "pending" ? "Pending" : 
+                   filter === "rejected" ? "Rejected" : "Top 10"}
                   <X size={12} className="cursor-pointer" />
                 </Badge>
               ))}
@@ -535,6 +563,7 @@ const refreshData = async () => {
           onToggleArchive={handleToggleArchive}
           onToggleTop10={handleToggleTop10}
           windowWidth={windowWidth}
+          getApprovalStatus={getApprovalStatus}
         />
 
         {/* Show count of displayed achievements */}

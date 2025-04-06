@@ -13,6 +13,7 @@ interface AdminAchievementGridProps {
   onToggleArchive: (achievement: Achievement) => void;
   onToggleTop10: (achievement: Achievement) => void;
   windowWidth: number;
+  getApprovalStatus: (achievement: Achievement) => 'rejected' | 'pending' | 'approved';
 }
 
 export default function AdminAchievementGrid({
@@ -24,6 +25,7 @@ export default function AdminAchievementGrid({
   onToggleArchive,
   onToggleTop10,
   windowWidth,
+  getApprovalStatus,
 }: AdminAchievementGridProps) {
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1024;
@@ -35,26 +37,30 @@ export default function AdminAchievementGrid({
   ) => {
     // Skip sectioning for special categories
     if (
-      ["All Achievements", "Top 10", "Pending Students", "Archived"].includes(
+      ["Top 10", "Pending Students", "Archived"].includes(
         selectedCategory
       )
     ) {
-      return { top10: [], others: achievements };
+      return { top10: [], unarchived: achievements, archived: [] };
     }
 
-    // For specific categories, separate top 10 from other unarchived
+    // For specific categories, separate into three sections
     const top10 = achievements.filter((a) => a.overAllTop10);
-    const others = achievements.filter((a) => !a.overAllTop10);
+    const unarchived = achievements.filter((a) => !a.overAllTop10 && !a.archived);
+    const archived = achievements.filter((a) => !a.overAllTop10 && a.archived);
 
-    return { top10, others };
+    return { top10, unarchived, archived };
   };
 
   // Separate achievements into sections when viewing a specific category
-  const { top10, others } = getSectionedAchievements(
+  const { top10, unarchived, archived } = getSectionedAchievements(
     achievements,
     selectedCategory
   );
-  const hasMultipleSections = top10.length > 0 && others.length > 0;
+  
+  const hasTop10Section = top10.length > 0;
+  const hasUnarchivedSection = unarchived.length > 0;
+  const hasArchivedSection = archived.length > 0;
 
   // Mobile view with modern grid layout
   if (isMobile) {
@@ -74,48 +80,60 @@ export default function AdminAchievementGrid({
                 <EmptyState />
               ) : (
                 <>
-                  {/* Show sectioned achievements on mobile */}
-                  {hasMultipleSections ? (
+                  {/* Top 10 section */}
+                  {hasTop10Section && (
                     <>
-                      {/* Top 10 section */}
-                      {top10.length > 0 && (
-                        <>
-                          <SectionHeader title="Top 10 Achievements" />
-                          <div className="grid grid-cols-1 gap-6 mb-8">
-                            <AnimatedCards
-                              achievements={top10}
-                              onAchievementClick={onAchievementClick}
-                              onToggleArchive={onToggleArchive}
-                              onToggleTop10={onToggleTop10}
-                            />
-                          </div>
-
-                          <div className="border-t border-gray-100 my-8"></div>
-                          <SectionHeader title="Other Achievements" />
-                        </>
+                      <SectionHeader title="Top 10 Achievements" />
+                      <div className="grid grid-cols-1 gap-6 mb-8">
+                        <AnimatedCards
+                          achievements={top10}
+                          onAchievementClick={onAchievementClick}
+                          onToggleArchive={onToggleArchive}
+                          onToggleTop10={onToggleTop10}
+                          getApprovalStatus={getApprovalStatus}
+                        />
+                      </div>
+                      {(hasUnarchivedSection || hasArchivedSection) && (
+                        <div className="border-t border-gray-100 my-8"></div>
                       )}
+                    </>
+                  )}
 
-                      {/* Other achievements section */}
+                  {/* Unarchived section */}
+                  {hasUnarchivedSection && (
+                    <>
+                      <SectionHeader title="Unarchived Achievements" />
                       <div className="grid grid-cols-1 gap-6 mb-6">
                         <AnimatedCards
-                          achievements={others}
+                          achievements={unarchived}
                           onAchievementClick={onAchievementClick}
                           onToggleArchive={onToggleArchive}
                           onToggleTop10={onToggleTop10}
                           startIndex={top10.length}
+                          getApprovalStatus={getApprovalStatus}
+                        />
+                      </div>
+                      {hasArchivedSection && (
+                        <div className="border-t border-gray-100 my-8"></div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Archived section */}
+                  {hasArchivedSection && (
+                    <>
+                      <SectionHeader title="Archived Achievements" />
+                      <div className="grid grid-cols-1 gap-6 mb-6">
+                        <AnimatedCards
+                          achievements={archived}
+                          onAchievementClick={onAchievementClick}
+                          onToggleArchive={onToggleArchive}
+                          onToggleTop10={onToggleTop10}
+                          startIndex={top10.length + unarchived.length}
+                          getApprovalStatus={getApprovalStatus}
                         />
                       </div>
                     </>
-                  ) : (
-                    // Show all achievements without sections for other categories
-                    <div className="grid grid-cols-1 gap-6 mb-6">
-                      <AnimatedCards
-                        achievements={achievements}
-                        onAchievementClick={onAchievementClick}
-                        onToggleArchive={onToggleArchive}
-                        onToggleTop10={onToggleTop10}
-                      />
-                    </div>
                   )}
                 </>
               )}
@@ -144,47 +162,60 @@ export default function AdminAchievementGrid({
                 <EmptyState />
               ) : (
                 <>
-                  {/* Show sectioned achievements */}
-                  {hasMultipleSections ? (
+                  {/* Top 10 section */}
+                  {hasTop10Section && (
                     <>
-                      {/* Top 10 section */}
-                      {top10.length > 0 && (
-                        <>
-                          <SectionHeader title="Top 10 Achievements" />
-                          <div className="grid grid-cols-2 gap-6 mb-8">
-                            <AnimatedCards
-                              achievements={top10}
-                              onAchievementClick={onAchievementClick}
-                              onToggleArchive={onToggleArchive}
-                              onToggleTop10={onToggleTop10}
-                            />
-                          </div>
-
-                          <div className="border-t border-gray-100 my-8"></div>
-                          <SectionHeader title="Other Achievements" />
-                        </>
-                      )}
-
-                      {/* Other achievements section */}
-                      <div className="grid grid-cols-2 gap-6 mb-6">
+                      <SectionHeader title="Top 10 Achievements" />
+                      <div className="grid grid-cols-2 gap-6 mb-8">
                         <AnimatedCards
-                          achievements={others}
+                          achievements={top10}
                           onAchievementClick={onAchievementClick}
                           onToggleArchive={onToggleArchive}
                           onToggleTop10={onToggleTop10}
+                          getApprovalStatus={getApprovalStatus}
+                        />
+                      </div>
+                      {(hasUnarchivedSection || hasArchivedSection) && (
+                        <div className="border-t border-gray-100 my-8"></div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Unarchived section */}
+                  {hasUnarchivedSection && (
+                    <>
+                      <SectionHeader title="Unarchived Achievements" />
+                      <div className="grid grid-cols-2 gap-6 mb-6">
+                        <AnimatedCards
+                          achievements={unarchived}
+                          onAchievementClick={onAchievementClick}
+                          onToggleArchive={onToggleArchive}
+                          onToggleTop10={onToggleTop10}
+                          startIndex={top10.length}
+                          getApprovalStatus={getApprovalStatus}
+                        />
+                      </div>
+                      {hasArchivedSection && (
+                        <div className="border-t border-gray-100 my-8"></div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Archived section */}
+                  {hasArchivedSection && (
+                    <>
+                      <SectionHeader title="Archived Achievements" />
+                      <div className="grid grid-cols-2 gap-6 mb-6">
+                        <AnimatedCards
+                          achievements={archived}
+                          onAchievementClick={onAchievementClick}
+                          onToggleArchive={onToggleArchive}
+                          onToggleTop10={onToggleTop10}
+                          startIndex={top10.length + unarchived.length}
+                          getApprovalStatus={getApprovalStatus}
                         />
                       </div>
                     </>
-                  ) : (
-                    // Show all achievements without sections for other categories
-                    <div className="grid grid-cols-2 gap-6 mb-6">
-                      <AnimatedCards
-                        achievements={achievements}
-                        onAchievementClick={onAchievementClick}
-                        onToggleArchive={onToggleArchive}
-                        onToggleTop10={onToggleTop10}
-                      />
-                    </div>
                   )}
                 </>
               )}
@@ -212,47 +243,60 @@ export default function AdminAchievementGrid({
               <EmptyState />
             ) : (
               <>
-                {/* Show sectioned achievements */}
-                {hasMultipleSections ? (
+                {/* Top 10 section */}
+                {hasTop10Section && (
                   <>
-                    {/* Top 10 section */}
-                    {top10.length > 0 && (
-                      <>
-                        <SectionHeader title="Top 10 Achievements" />
-                        <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-                          <AnimatedCards
-                            achievements={top10}
-                            onAchievementClick={onAchievementClick}
-                            onToggleArchive={onToggleArchive}
-                            onToggleTop10={onToggleTop10}
-                          />
-                        </div>
-
-                        <div className="border-t border-gray-100 my-12"></div>
-                        <SectionHeader title="Unarchived Achievements" />
-                      </>
-                    )}
-
-                    {/* Other achievements section */}
-                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+                    <SectionHeader title="Top 10 Achievements" />
+                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                       <AnimatedCards
-                        achievements={others}
+                        achievements={top10}
                         onAchievementClick={onAchievementClick}
                         onToggleArchive={onToggleArchive}
                         onToggleTop10={onToggleTop10}
+                        getApprovalStatus={getApprovalStatus}
+                      />
+                    </div>
+                    {(hasUnarchivedSection || hasArchivedSection) && (
+                      <div className="border-t border-gray-100 my-12"></div>
+                    )}
+                  </>
+                )}
+
+                {/* Unarchived section */}
+                {hasUnarchivedSection && (
+                  <>
+                    <SectionHeader title="Unarchived Achievements" />
+                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+                      <AnimatedCards
+                        achievements={unarchived}
+                        onAchievementClick={onAchievementClick}
+                        onToggleArchive={onToggleArchive}
+                        onToggleTop10={onToggleTop10}
+                        startIndex={top10.length}
+                        getApprovalStatus={getApprovalStatus}
+                      />
+                    </div>
+                    {hasArchivedSection && (
+                      <div className="border-t border-gray-100 my-12"></div>
+                    )}
+                  </>
+                )}
+
+                {/* Archived section */}
+                {hasArchivedSection && (
+                  <>
+                    <SectionHeader title="Archived Achievements" />
+                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+                      <AnimatedCards
+                        achievements={archived}
+                        onAchievementClick={onAchievementClick}
+                        onToggleArchive={onToggleArchive}
+                        onToggleTop10={onToggleTop10}
+                        startIndex={top10.length + unarchived.length}
+                        getApprovalStatus={getApprovalStatus}
                       />
                     </div>
                   </>
-                ) : (
-                  // Show all achievements without sections for other categories
-                  <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
-                    <AnimatedCards
-                      achievements={achievements}
-                      onAchievementClick={onAchievementClick}
-                      onToggleArchive={onToggleArchive}
-                      onToggleTop10={onToggleTop10}
-                    />
-                  </div>
                 )}
               </>
             )}
@@ -270,12 +314,14 @@ function AnimatedCards({
   onToggleArchive,
   onToggleTop10,
   startIndex = 0,
+  getApprovalStatus,
 }: {
   achievements: Achievement[];
   onAchievementClick: (achievement: Achievement) => void;
   onToggleArchive: (achievement: Achievement) => void;
   onToggleTop10: (achievement: Achievement) => void;
   startIndex?: number;
+  getApprovalStatus: (achievement: Achievement) => 'rejected' | 'pending' | 'approved';
 }) {
   return (
     <>
@@ -295,6 +341,7 @@ function AnimatedCards({
             onClick={() => onAchievementClick(achievement)}
             onToggleArchive={() => onToggleArchive(achievement)}
             onToggleTop10={() => onToggleTop10(achievement)}
+            approvalStatus={getApprovalStatus(achievement)}
           />
         </motion.div>
       ))}

@@ -206,6 +206,19 @@ export default function AdminPanel() {
       })
     );
   };
+const REJECTION_DATE = new Date("1999-12-31T18:30:00.000Z");
+const getApprovalStatus = (achievement: Achievement): 'rejected' | 'pending' | 'approved' => {
+  if (typeof achievement.approved === "string") {
+    achievement.approved = new Date(achievement.approved);}
+  if (achievement.approved instanceof Date && 
+      Math.abs(achievement.approved.getTime() - REJECTION_DATE.getTime()) < 10000) { // Allow 16 min tolerance
+    return 'rejected';
+  } else if (achievement.approved === null) {
+    return 'pending';
+  } else {
+    return 'approved';
+  }
+};
 
   const refreshData = () => {
     setLoading(true);
@@ -290,6 +303,7 @@ export default function AdminPanel() {
           onToggleArchive={handleToggleArchive}
           onToggleTop10={handleToggleTop10}
           windowWidth={windowWidth}
+          getApprovalStatus={(achievement) => getApprovalStatus(achievement)}
         />
 
         {/* Show count of displayed achievements */}

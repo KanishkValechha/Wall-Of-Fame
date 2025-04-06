@@ -103,40 +103,77 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { _id, ...updateFields } = body;
+    
+    // Check if _id is provided
     if (!_id) {
       return NextResponse.json(
         { error: "Missing required field: _id" },
         { status: 400 }
       );
     }
+    
+    // Check if there are any fields to update
+    if (Object.keys(updateFields).length === 0) {
+      return NextResponse.json(
+        { error: "No update fields provided" },
+        { status: 400 }
+      );
+    }
+    
+    // Format date if approved field is present
     if (updateFields?.approved) {
       updateFields.approved = new Date(updateFields.approved);
     }
     
     await client.connect();
     const db = client.db("Wall-Of-Fame");
-    const result = await db
-    .collection("achievers")
-    .updateOne(
-      { _id: new ObjectId(_id) },
-      { 
-        $set: updateFields 
-      }
-    );
-      if (result.modifiedCount === 0) {
+    
+    // First check if document exists
+    const documentExists = await db
+      .collection("achievers")
+      .findOne({ _id: new ObjectId(_id) });
+      
+    if (!documentExists) {
       return NextResponse.json(
         { error: "No document found with the given _id" },
         { status: 404 }
       );
     }
-
+    
+    // Proceed with update if document exists
+    const result = await db
+      .collection("achievers")
+      .updateOne(
+        { _id: new ObjectId(_id) },
+        { $set: updateFields }
+      );
+    
+    // We already checked for existence, so we only need to verify the update was successful
+    if (result.acknowledged) {
+      return NextResponse.json(
+        { 
+          message: "Achievement updated successfully",
+          modifiedCount: result.modifiedCount
+        },
+        { status: 200 }
+      );
+    } else {
+      throw new Error("Database operation not acknowledged");
+    }
+  } catch (error: any) {
+    console.error("Error updating achievement:", error);
+    
+    // Create a more detailed error response
+    const errorMessage = error.message || "Unknown error";
+    const errorCode = error.code || "UNKNOWN";
+    
     return NextResponse.json(
-      { message: "Achievement updated successfully" },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to update achievement" },
+      { 
+        error: "Failed to update achievement", 
+        details: errorMessage,
+        code: errorCode,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }

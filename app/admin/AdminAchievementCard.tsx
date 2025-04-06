@@ -19,6 +19,7 @@ interface AdminAchievementCardProps {
   onClick: () => void;
   onToggleArchive: () => void;
   onToggleTop10: () => void;
+  approvalStatus: string;
 }
 
 function AdminAchievementCard({
@@ -26,6 +27,7 @@ function AdminAchievementCard({
   onClick,
   onToggleArchive,
   onToggleTop10,
+  approvalStatus,
 }: AdminAchievementCardProps) {
   return (
     <motion.div
@@ -42,20 +44,24 @@ function AdminAchievementCard({
       }}
     >
       {/* Top 10 badge */}
-      {achievement.overAllTop10 && (
+      {/* {achievement.overAllTop10 && (
         <div className="absolute top-3 right-3 z-30">
           <div className="h-8 w-8 rounded-full bg-amber-400 flex items-center justify-center shadow-lg">
             <Star className="h-4 w-4 text-white fill-white" />
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Status indicator */}
       <div className="absolute top-3 left-3 z-30">
         <div
           className={cn(
             "h-2 w-2 rounded-full",
-            achievement.approved ? "bg-emerald-500" : "bg-amber-500",
+            approvalStatus === "approved"
+              ? "bg-emerald-500"
+              : approvalStatus === "pending"
+              ? "bg-amber-500"
+              : "bg-red-500",
             achievement.archived && "bg-gray-400"
           )}
         />
@@ -83,6 +89,11 @@ function AdminAchievementCard({
         </h3>
         <p className="text-sm text-white/90 line-clamp-2 mb-3">
           {achievement.title}
+        </p>
+
+        {/* Show approval status*/}
+        <p className="text-xs text-white/80 mb-2">
+          Status: {approvalStatus || "unknown"}
         </p>
 
         {/* Action buttons */}
@@ -143,7 +154,10 @@ function AdminAchievementCard({
                       onToggleArchive();
                     }}
                   >
-                    <Archive className="h-3.5 w-3.5" />
+                    <Archive className={cn(
+                        "h-3.5 w-3.5",
+                        achievement.archived && "fill-white"
+                      )} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="top">
