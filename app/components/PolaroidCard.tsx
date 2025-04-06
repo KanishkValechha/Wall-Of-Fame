@@ -14,57 +14,64 @@ function PolaroidCardComponent({ achievement, onClick }: PolaroidCardProps) {
   return (
     <motion.div
       whileHover={{
-        scale: 1.05,
-        rotate: 0,
-        zIndex: 50,
+        scale: 1.03,
+        y: -5,
       }}
-      className="card-shine bg-white p-4 cursor-pointer will-change-transform 
-        w-[140px] sm:w-[160px] md:w-[180px] flex flex-col rounded-sm mx-auto"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="group relative rounded-xl overflow-hidden cursor-pointer"
       onClick={onClick}
       style={{
-        transformOrigin: "center center",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
-        border: "1px solid rgba(0, 0, 0, 0.1)",
-        transform: "translate3d(0, 0, 0)", // Force GPU acceleration
-        backfaceVisibility: "hidden",
-        perspective: 1000,
+        width: "100%",
+        aspectRatio: "3/4",
+        background: "white",
+        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.06)",
       }}
     >
+      {/* Image container with overlay gradient */}
       <motion.div
-        className="relative w-full aspect-square mb-5 overflow-hidden"
+        className="absolute inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/70 z-10"
+        layoutId={`overlay-${achievement._id}`}
+      />
+
+      <motion.div
+        className="absolute inset-0"
         layoutId={`image-container-${achievement._id}`}
-        transition={{
-          type: "spring",
-          bounce: 0.2,
-          duration: 0.6,
-          layout: { duration: 0.3 },
-        }}
       >
-        <div className="absolute inset-0 border border-black/10 z-10" />
         {achievement.imageUrl && (
           <Image
             src={achievement.imageUrl}
             alt={achievement.fullName}
             fill
-            sizes="(max-width: 768px) 140px, (max-width: 1024px) 160px, 180px"
-            className="object-cover"
-            loading="eager" // Change to eager since we're preloading anyway
-            priority={true} // Add priority for first visible images
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            priority={true}
           />
         )}
       </motion.div>
-      <motion.h3
-        className="text-base sm:text-lg font-handwriting text-center truncate px-1 text-black/80"
-        layoutId={`name-${achievement._id}`}
-        transition={{
-          type: "spring",
-          bounce: 0.2,
-          duration: 0.6,
-          layout: { duration: 0.3 },
-        }}
+
+      {/* Content overlay at bottom */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 p-5 z-20 text-white"
+        layoutId={`content-${achievement._id}`}
       >
-        {achievement.fullName}
-      </motion.h3>
+        <motion.h3
+          className="font-medium text-lg md:text-xl mb-1"
+          layoutId={`name-${achievement._id}`}
+        >
+          {achievement.fullName}
+        </motion.h3>
+
+        <motion.p
+          className="text-xs md:text-sm text-white/90 line-clamp-2 font-light"
+          layoutId={`title-${achievement._id}`}
+        >
+          {achievement.title}
+        </motion.p>
+      </motion.div>
+
+      {/* Subtle shine effect on hover */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-5" />
     </motion.div>
   );
 }
