@@ -19,101 +19,115 @@ import { formatDistanceToNow } from "date-fns";
 import { Achievement } from "@/app/types/achievements";
 import { DateRange } from "react-day-picker";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { useSearchParams } from "next/navigation";
 
-const fetchAchievements = async () => {
-  const response = await fetch(
-    "/api/achievements?professorEmail=vedic20052005@gmail.com&blacklist=userImage,certificateProof",
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+export default function DashboardClient() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email");
+
+  const fetchAchievements = async (email: string) => {
+    try {
+      const response = await fetch(
+        `/api/achievements?professorEmail=${email}&blacklist=userImage,certificateProof`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch achievements: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.achievements.map((achievement: any) => ({
+        ...achievement,
+        approved: achievement.approved ? new Date(achievement.approved) : null,
+        studentMail: achievement.studentMail || null,
+      }));
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      throw error; // Re-throw the error to handle it in the caller
     }
-  );
-  const data = await response.json();
-  return data.achievements.map((achievement: any) => ({
-    ...achievement,
-    approved: achievement.approved ? new Date(achievement.approved) : null,
-    studentMail: achievement.studentMail || null,
-  }));
-};
+  };
 
-const fetchStudentDetails = async (submissionId: number, name: string) => {
-  const response = await fetch(
-    `/api/achievements?whitelist=description,title,userImage,certificateProof&_id=${submissionId}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+  const fetchStudentDetails = async (submissionId: number, name: string) => {
+    const response = await fetch(
+      `/api/achievements?whitelist=description,title,userImage,certificateProof&_id=${submissionId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await response.json();
+    if (!data.achievements[0].userImage) {
+      throw new Error("User image not found");
     }
-  );
-  const data = await response.json();
-  if (!data.achievements[0].userImage) {
-    throw new Error("User image not found");
-  }
-  return data.achievements[0];
-};
+    return data.achievements[0];
+  };
 
-const updateAchievement = async (
-  submissionId: number,
-  approved: Date | null,
-  description: string,
-  title: string,
-  student: any,
-  silent: boolean
-) => {
-  const response = await fetch("/api/achievements", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ _id: submissionId, approved, description, title }),
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Failed to update achievement");
-  }
-  if (
-    !silent &&
-    student.studentMail &&
-    data &&
-    data.message &&
-    data.message === "Achievement updated successfully"
-  ) {
-    //SEND MAIL TO USER
-    const APPROVED = approved && approved.getFullYear() !== 2000;
-    const response = await fetch("/api/sendMail", {
+  const updateAchievement = async (
+    submissionId: number,
+    approved: Date | null,
+    description: string,
+    title: string,
+    student: any,
+    silent: boolean
+  ) => {
+    const response = await fetch("/api/achievements", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        email: student.studentMail,
-        subject: "Achievement Status",
-        html: `
-          <p>Dear ${student.fullName},</p>
-          <p>Your achievement ${
-            APPROVED ? `titled <strong>${title}</strong>` : ""
-          } has been ${APPROVED ? "approved" : "rejected"}.</p>
-          ${
-            APPROVED
-              ? `<p><strong>Description:</strong> ${description}</p>`
-              : ""
-          }
-          <p>If you have any questions, feel free to contact your professor at 
-          <a href="mailto:${student.professorEmail}">${
-          student.professorEmail
-        }</a>.</p>
-          <p>Best regards,<br/>${student.professorName}</p>
-        `,
-      }),
+      body: JSON.stringify({ _id: submissionId, approved, description, title }),
     });
-    return data;
-  }
-};
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to update achievement");
+    }
+    if (
+      !silent &&
+      student.studentMail &&
+      data &&
+      data.message &&
+      data.message === "Achievement updated successfully"
+    ) {
+      //SEND MAIL TO USER
+      const APPROVED = approved && approved.getFullYear() !== 2000;
+      const response = await fetch("/api/sendMail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: student.studentMail,
+          subject: "Achievement Status",
+          html: `
+            <p>Dear ${student.fullName},</p>
+            <p>Your achievement ${
+              APPROVED ? `titled <strong>${title}</strong>` : ""
+            } has been ${APPROVED ? "approved" : "rejected"}.</p>
+            ${
+              APPROVED
+                ? `<p><strong>Description:</strong> ${description}</p>`
+                : ""
+            }
+            <p>If you have any questions, feel free to contact your professor at 
+            <a href="mailto:${student.professorEmail}">${
+            student.professorEmail
+          }</a>.</p>
+            <p>Best regards,<br/>${student.professorName}</p>
+          `,
+        }),
+      });
+      return data;
+    }
+  };
 
-export default function DashboardClient() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [submissions, setSubmissions] = useState<Achievement[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -137,12 +151,22 @@ export default function DashboardClient() {
   // Initialize state after component mounts to avoid hydration mismatch
   useEffect(() => {
     const loadAchievements = async () => {
-      const achievements = await fetchAchievements();
-      setSubmissions(achievements);
-      setIsLoaded(true);
+      try {
+        if (!email) {
+          throw new Error("Email query parameter is missing.");
+        }
+
+        const achievements = await fetchAchievements(email);
+        setSubmissions(achievements);
+      } catch (error: any) {
+        setError(error.message || "An error occurred while loading achievements.");
+      } finally {
+        setIsLoaded(true); // Ensure loading state is updated even if an error occurs
+      }
     };
+
     loadAchievements();
-  }, []);
+  }, [email]);
 
   const handleStatusChange = async (
     submissionId: number,

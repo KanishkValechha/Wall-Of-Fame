@@ -138,16 +138,54 @@ export function StudentDetailsModal({
     professorEmail: string,
     message: string
   ) => {
-    // This is just a frontend implementation - no real backend call
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        console.log("Sending approval request to:", professorEmail);
-        console.log("Message:", message);
-        console.log("Student:", student?.fullName);
-        console.log("Achievement ID:", student?._id);
-        resolve();
-      }, 1000);
-    });
+    try {
+      // Send the email
+      const emailResponse = await fetch('/api/sendMail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: professorEmail,
+          subject: `Approval Request for Achievement (Transferred from ${student?.professorName})`,
+          html: `
+            <p>Dear Professor,</p>
+            <p>We have received an achievement submission from the student <strong>${student?.fullName}</strong>.</p>
+            <p>Achievement Title: <strong>${achievementTitle || student?.title || ''}</strong></p>
+            <p>This achievement has been transferred to you from <strong>${student?.professorName}</strong>.</p>
+            <p>Message: ${message}</p>
+            <p>Please review and approve this achievement at your earliest convenience.</p>
+            <p>Thank you!</p>
+          `,
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        throw new Error('Failed to send email');
+      }
+
+      console.log('Approval request sent successfully');
+
+      // Update the professor's email in the backend
+      const updateResponse = await fetch(`/api/achievements`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          _id: student?._id,
+          professorEmail: professorEmail,
+        }),
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Failed to update professor email');
+      }
+
+      console.log('Professor email updated successfully');
+    } catch (error) {
+      console.error('Error handling approval request:', error);
+    }
   };
 
   if (!student) return null;

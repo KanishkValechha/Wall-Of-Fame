@@ -63,7 +63,8 @@ export async function POST(req: NextRequest) {
             approved: null,
             overAllTop10: false,
             archived: false,
-            description: ''
+            description: '',
+            order:-1
         };
 
         // Validate required fields
@@ -99,8 +100,20 @@ export async function POST(req: NextRequest) {
         await client.connect();
         const db = client.db('Wall-Of-Fame');
         const collection = db.collection('achievers');
+        const counters = db.collection('counters');
+        const SEQ = await counters.findOneAndUpdate(
+            { _id: "orderCounter" as any },
+            { $inc: { seq: 1 } },
+            { returnDocument: "after", upsert: true }
+        );
+        if (!SEQ || !SEQ.seq) {
+            console.log(SEQ , SEQ?.seq);
+            throw new Error('Failed to retrieve order sequence number');
+        }
+        const orderNumber = SEQ.seq;
+        achievement.order = orderNumber
 
-        // Insert the achievement
+                // Insert the achievement
         const result = await collection.insertOne(achievement);
 
         EmailService.sendEmail(achievement.professorEmail, `Achievement approval for ${achievement.fullName}`,
