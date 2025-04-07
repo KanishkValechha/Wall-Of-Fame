@@ -606,37 +606,7 @@ const refreshData = async () => {
             )}
           </div>
 
-          <div className="flex space-x-2 w-full md:w-auto justify-between md:justify-end items-center">
-            {/* Sort dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1.5 h-10"
-                >
-                  <ArrowUpDown className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Sort</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuRadioGroup
-                  value={sortBy}
-                  onValueChange={setSortBy}
-                >
-                  {sortOptions.map((option) => (
-                    <DropdownMenuRadioItem
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Button
+          <div className="flex space-x-2 w-full md:w-auto justify-between md:justify-end items-center">            <Button
               variant="outline"
               size="sm"
               className="flex items-center gap-1.5 h-10"

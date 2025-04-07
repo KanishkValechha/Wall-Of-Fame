@@ -182,7 +182,7 @@ export default function EditAchievementModal({
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
+                  {categories.slice(1).map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
                     </SelectItem>
