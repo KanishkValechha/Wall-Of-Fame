@@ -12,13 +12,13 @@ interface StudentDetailsModalProps {
   onClose: () => void;
   student: Achievement | null;
   onStatusChange: (
-    id: number,
+    id: string,
     status: string,
     description: string,
     title: string
   ) => void;
   onOpenRemarks: (
-    id: number,
+    id: string,
     email: string | null,
     name: string,
     mobile: string

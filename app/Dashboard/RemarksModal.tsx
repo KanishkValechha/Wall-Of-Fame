@@ -7,11 +7,11 @@ import { X } from "lucide-react";
 interface RemarksModalProps {
   isOpen: boolean;
   onClose: () => void;
-  submissionId: number | null;
+  submissionId: string | null;
   studentMail: string | null;
   studentName: string;
   studentPhone: string;
-  onSendRemark: (submissionId: number, remark: string) => void;
+  onSendRemark: (submissionId: string, remark: string) => void;
 }
 
 export function RemarksModal({

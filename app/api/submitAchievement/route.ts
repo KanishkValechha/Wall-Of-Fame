@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
             { returnDocument: "after", upsert: true }
         );
         if (!SEQ || !SEQ.seq) {
-            console.log(SEQ , SEQ?.seq);
+            // console.log(SEQ , SEQ?.seq);
             throw new Error('Failed to retrieve order sequence number');
         }
         const orderNumber = SEQ.seq;

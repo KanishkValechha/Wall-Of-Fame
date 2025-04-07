@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 // Admin-specific categories
 const adminCategories = [
@@ -74,6 +75,14 @@ const sortOptions: SortOption[] = [
   { label: "Name (Z-A)", value: "name_desc" },
 ];
 
+// Enhanced filter type with negation support
+type FilterState = {
+  id: string;
+  active: boolean;
+  negated: boolean;
+  label: string;
+};
+
 export default function AdminPanel() {
   const [achievements, setAchievements] =
     useState<Achievement[]>([]);
@@ -88,7 +97,13 @@ export default function AdminPanel() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [windowWidth, setWindowWidth] = useState(0);
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  
+  // Replace the simple string array with a more complex filter state
+  const [filters, setFilters] = useState<FilterState[]>([
+    { id: "pending", active: false, negated: false, label: "Pending" },
+    { id: "rejected", active: false, negated: false, label: "Rejected" },
+    { id: "top10", active: false, negated: false, label: "Top 10" },
+  ]);
 
   const {
     isSidebarAnimating,
@@ -175,16 +190,26 @@ if (searchQuery) {
       } else if (selectedCategory === "All Achievements") {
         filtered = filtered.filter((a) => true);
 
-        // Apply additional filters if selected
-        if (activeFilters.includes("pending")) {
-          filtered = filtered.filter((a) => getApprovalStatus(a) === 'pending');
-        }
-        if (activeFilters.includes("rejected")) {
-          filtered = filtered.filter((a) => getApprovalStatus(a) === 'rejected');
-        }
-        if (activeFilters.includes("top10")) {
-          filtered = filtered.filter((a) => a.overAllTop10);
-        }
+        // Apply filters with support for negation
+        filters.forEach(filter => {
+          if (!filter.active) return;
+  
+          if (filter.id === "pending") {
+            filtered = filtered.filter((a) => 
+              filter.negated ? getApprovalStatus(a) !== 'pending' : getApprovalStatus(a) === 'pending'
+            );
+          }
+          else if (filter.id === "rejected") {
+            filtered = filtered.filter((a) => 
+              filter.negated ? getApprovalStatus(a) !== 'rejected' : getApprovalStatus(a) === 'rejected'
+            );
+          }
+          else if (filter.id === "top10") {
+            filtered = filtered.filter((a) => 
+              filter.negated ? !a.overAllTop10 : a.overAllTop10
+            );
+          }
+        });
       } else {
         // For specific categories
         filtered = filtered.filter(
@@ -201,14 +226,14 @@ if (searchQuery) {
       }
 
       return filtered;
-  }, [achievements, selectedCategory, searchQuery, activeFilters]);
+  }, [achievements, selectedCategory, searchQuery, filters]);
 
   const handleSelectCategory = (category: string) => {
     startAnimationSequence();
     setTimeout(() => {
       setSelectedCategory(category);
       // Reset filters when changing categories
-      setActiveFilters([]);
+      setFilters(filters.map(f => ({ ...f, active: false, negated: false })));
     }, 900);
   };
 
@@ -324,11 +349,20 @@ const refreshData = async () => {
     downloadAnchorNode.remove();
   };
 
-  const toggleFilter = (filter: string) => {
-    setActiveFilters((prev) =>
-      prev.includes(filter)
-        ? prev.filter((f) => f !== filter)
-        : [...prev, filter]
+  // Updated filter toggle function that handles negation
+  const toggleFilter = (filterId: string, negate = false) => {
+    setFilters(prev => 
+      prev.map(filter => {
+        if (filter.id === filterId) {
+          // If already active and we're pressing the same button (normal or negated)
+          if (filter.active && filter.negated === negate) {
+            return { ...filter, active: false, negated: false };
+          }
+          // Otherwise activate with the appropriate negation state
+          return { ...filter, active: true, negated: negate };
+        }
+        return filter;
+      })
     );
   };
 
@@ -346,11 +380,11 @@ const refreshData = async () => {
     //   return;
     // }
     
-    console.log("Reordering items:", items.map(item => ({
-      id: item._id,
-      name: item.fullName,
-      order: item.order
-    })));
+    // console.log("Reordering items:", items.map(item => ({
+    //   id: item._id,
+    //   name: item.fullName,
+    //   order: item.order
+    // })));
     
     // Find which item moved by comparing current positions with previous positions
     const movedItem = items.find((item, index) => {
@@ -364,17 +398,17 @@ const refreshData = async () => {
     });
     
     if (!movedItem) {
-      console.log("No item was moved");
+      // console.log("No item was moved");
       return;
     }
     
-    console.log("Item moved:", movedItem.fullName);
+    // console.log("Item moved:", movedItem.fullName);
     
     // Now we need to determine where it moved to and what item it displaced
     const oldIndex = achievements.findIndex(a => a._id === movedItem._id);
     const newIndex = items.findIndex(item => item._id === movedItem._id);
     
-    console.log(`Item moved from position ${oldIndex} to ${newIndex}`);
+    // console.log(`Item moved from position ${oldIndex} to ${newIndex}`);
     
     // Create an updated achievements array with the new order
     // We'll assign new order values to maintain a consistent sequence
@@ -388,7 +422,7 @@ const refreshData = async () => {
         const newOrder = index + 1; // 1-based indexing for order
         
         if (currentOrder !== newOrder) {
-          console.log(`Updating order for "${item.fullName}" from ${currentOrder} to ${newOrder}`);
+          // console.log(`Updating order for "${item.fullName}" from ${currentOrder} to ${newOrder}`);
           updatedAchievements[achievementIndex] = {
             ...updatedAchievements[achievementIndex],
             order: newOrder
@@ -441,11 +475,11 @@ const refreshData = async () => {
     }
     
     // Log the updated order for verification
-    console.log("New order:", items.map((item, index) => ({
-      name: item.fullName,
-      oldOrder: achievements.find(a => a._id === item._id)?.order,
-      newOrder: index + 1
-    })));
+    // console.log("New order:", items.map((item, index) => ({
+    //   name: item.fullName,
+    //   oldOrder: achievements.find(a => a._id === item._id)?.order,
+    //   newOrder: index + 1
+    // })));
   };
 
   return (
@@ -495,7 +529,7 @@ const refreshData = async () => {
             {/* Filter dropdown for "All Achievements" view */}
             {selectedCategory === "All Achievements" && (
               <div className="flex items-center space-x-2">
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
@@ -506,59 +540,54 @@ const refreshData = async () => {
                       <span>Filter</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuContent align="start" className="w-64 z-[19]">
                     <div className="p-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id="filter-pending"
-                          checked={activeFilters.includes("pending")}
-                          onChange={() => toggleFilter("pending")}
-                          className="rounded border-gray-300"
-                        />
-                        <label htmlFor="filter-pending" className="text-sm">
-                          Pending only
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <input
-                          type="checkbox"
-                          id="filter-rejected"
-                          checked={activeFilters.includes("rejected")}
-                          onChange={() => toggleFilter("rejected")}
-                          className="rounded border-gray-300"
-                        />
-                        <label htmlFor="filter-rejected" className="text-sm">
-                          Rejected only
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <input
-                          type="checkbox"
-                          id="filter-top10"
-                          checked={activeFilters.includes("top10")}
-                          onChange={() => toggleFilter("top10")}
-                          className="rounded border-gray-300"
-                        />
-                        <label htmlFor="filter-top10" className="text-sm">
-                          Top 10 only
-                        </label>
-                      </div>
+                      {filters.map(filter => (
+                        <div key={filter.id} className="mb-3 last:mb-0">
+                          <div className="text-xs text-gray-500 font-medium mb-1">
+                            {filter.label}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant={filter.active && !filter.negated ? "default" : "outline"} 
+                              className={cn(
+                                "h-8 px-3 text-xs rounded-md",
+                                filter.active && !filter.negated && "bg-emerald-500 text-white hover:bg-emerald-600"
+                              )}
+                                                          onClick={() => toggleFilter(filter.id, false)}
+                            >
+                              Yes
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={filter.active && filter.negated ? "destructive" : "outline"}
+                              className="h-8 px-3 text-xs rounded-md"
+                              onClick={() => toggleFilter(filter.id, true)}
+                            >
+                              No
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {activeFilters.length > 0 && (
-                  <div className="hidden md:flex items-center space-x-2">
-                    {activeFilters.map((filter) => (
+                {filters.some(f => f.active) && (
+                  <div className="hidden md:flex flex-wrap items-center gap-2">
+                    {filters.filter(f => f.active).map((filter) => (
                       <Badge
-                        key={filter}
-                        variant="secondary"
-                        className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-2 py-1"
-                        onClick={() => toggleFilter(filter)}
+                        key={filter.id}
+                        variant={filter.negated ? "destructive" : "secondary"}
+                        className={`flex items-center gap-1 px-2 py-1 ${
+                          filter.negated 
+                            ? "bg-red-100 hover:bg-red-200 text-red-700" 
+                            : "bg-green-100 hover:bg-green-200"
+                        }`}
+                        onClick={() => toggleFilter(filter.id, filter.negated)}
                       >
-                        {filter === "pending" ? "Pending" : 
-                         filter === "rejected" ? "Rejected" : "Top 10"}
+                        {filter.negated ? `Not ${filter.label}` : filter.label}
                         <X size={12} className="cursor-pointer" />
                       </Badge>
                     ))}
@@ -584,18 +613,21 @@ const refreshData = async () => {
         </div>
 
         {/* Conditional mobile display of active filters */}
-        {activeFilters.length > 0 &&
+        {filters.some(f => f.active) &&
           selectedCategory === "All Achievements" && (
             <div className="md:hidden flex flex-wrap items-center gap-2 mb-4">
-              {activeFilters.map((filter) => (
+              {filters.filter(f => f.active).map((filter) => (
                 <Badge
-                  key={filter}
-                  variant="secondary"
-                  className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-2 py-1"
-                  onClick={() => toggleFilter(filter)}
+                  key={filter.id}
+                  variant={filter.negated ? "destructive" : "secondary"}
+                  className={`flex items-center gap-1 px-2 py-1 ${
+                    filter.negated 
+                      ? "bg-red-100 hover:bg-red-200 text-red-700" 
+                      : "bg-green-100 hover:bg-green-200"
+                  }`}
+                  onClick={() => toggleFilter(filter.id, filter.negated)}
                 >
-                  {filter === "pending" ? "Pending" : 
-                   filter === "rejected" ? "Rejected" : "Top 10"}
+                  {filter.negated ? `Not ${filter.label}` : filter.label}
                   <X size={12} className="cursor-pointer" />
                 </Badge>
               ))}

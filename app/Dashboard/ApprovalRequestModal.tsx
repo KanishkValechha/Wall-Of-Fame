@@ -8,7 +8,7 @@ import { X, Send } from "lucide-react";
 interface ApprovalRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
-  submissionId: number | null;
+  submissionId: string | null;
   studentName: string;
   achievementTitle: string;
   onSendRequest: (professorEmail: string, message: string) => Promise<void>;

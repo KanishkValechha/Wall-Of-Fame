@@ -53,7 +53,7 @@ export default function DashboardClient() {
     }
   };
 
-  const fetchStudentDetails = async (submissionId: number, name: string) => {
+  const fetchStudentDetails = async (submissionId: string, name: string) => {
     const response = await fetch(
       `/api/achievements?whitelist=description,title,userImage,certificateProof&_id=${submissionId}`,
       {
@@ -71,7 +71,7 @@ export default function DashboardClient() {
   };
 
   const updateAchievement = async (
-    submissionId: number,
+    submissionId: string,
     approved: Date | null,
     description: string,
     title: string,
@@ -135,7 +135,7 @@ export default function DashboardClient() {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [remarksModal, setRemarksModal] = useState({
     isOpen: false,
-    submissionId: null as number | null,
+    submissionId: null as string | null,
     studentMail: null as string | null,
     studentName: "",
     studentPhone: "",
@@ -169,7 +169,7 @@ export default function DashboardClient() {
   }, [email]);
 
   const handleStatusChange = async (
-    submissionId: number,
+    submissionId: string,
     status: string,
     description: string,
     title: string
@@ -208,7 +208,7 @@ export default function DashboardClient() {
   };
 
   const handleOpenRemarks = (
-    submissionId: number,
+    submissionId: string,
     studentMail: string | null,
     studentName: string,
     studentPhone: string
@@ -235,7 +235,7 @@ export default function DashboardClient() {
   };
 
   const handleStudentClick = async (
-    submissionId: number,
+    submissionId: string,
     approved: string,
     description: string
   ) => {
@@ -266,7 +266,7 @@ export default function DashboardClient() {
     }
   };
 
-  const handleSendRemark = async (submissionId: number, remark: string) => {
+  const handleSendRemark = async (submissionId: string, remark: string) => {
     const submission = submissions.find((sub) => sub._id === submissionId);
     if (!submission) return;
     try {
@@ -553,7 +553,7 @@ export default function DashboardClient() {
                               e.stopPropagation();
                               setRemarksModal({
                                 isOpen: true,
-                                submissionId: submission._id as number,
+                                submissionId: submission._id as string,
                                 studentMail: submission.studentMail,
                                 studentName: submission.fullName,
                                 studentPhone: submission.mobileNumber,
