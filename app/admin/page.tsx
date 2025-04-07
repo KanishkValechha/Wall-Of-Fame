@@ -170,7 +170,7 @@ if (searchQuery) {
       if (selectedCategory === "Top 10") {
         filtered = filtered.filter((a) => a.overAllTop10 && !a.archived);
       } else if (selectedCategory === "Pending Students") {
-        filtered = filtered.filter((a) => getApprovalStatus(a) === 'pending' && !a.archived);
+        filtered = filtered.filter((a) => getApprovalStatus(a) === 'pending');
       } else if (selectedCategory === "Archived") {
         filtered = filtered.filter((a) => a.archived);
       } else if (selectedCategory === "All Achievements") {

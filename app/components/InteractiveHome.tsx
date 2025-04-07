@@ -128,11 +128,20 @@ export default function InteractiveHomeClient({
   const filteredAchievements = useMemo(() => {
     if (loading) return [];
     if (selectedCategory === "Overall TOP 10") {
-      return achievements.filter((a) => a.overAllTop10).slice(0, 10);
+      return achievements
+        .filter((a) => a.overAllTop10)
+        .slice(0, 10)
+        .sort((a, b) => (a.order || Infinity) - (b.order || Infinity));
     }
-    return achievements.filter(
-      (a) => a.achievementCategory === selectedCategory
-    );
+    return achievements
+      .filter((a) => a.achievementCategory === selectedCategory)
+      .sort((a, b) => {
+        // First prioritize overAllTop10
+        if (a.overAllTop10 && !b.overAllTop10) return -1;
+        if (!a.overAllTop10 && b.overAllTop10) return 1;
+        // Then sort by order
+        return (a.order || Infinity) - (b.order || Infinity);
+      });
   }, [selectedCategory, achievements, loading]);
 
   const calculatePosition = useCallback(

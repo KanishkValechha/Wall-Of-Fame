@@ -147,6 +147,7 @@ export default function AdminSidebar({
                   ![
                     "All Achievements",
                     "Top 10",
+                    "Overall TOP 10",
                     "Pending Students",
                     "Archived",
                   ].includes(category)
