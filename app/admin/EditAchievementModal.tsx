@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { categories } from "../data/achievements";
+import { categories } from "../types/categories";
 import Image from "next/image";
 import { format } from "date-fns";
 

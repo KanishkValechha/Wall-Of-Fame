@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { categories } from "../data/achievements";
+import { categories } from "../types/categories";
 import Header from "../components/Header";
 import AdminSidebar from "./AdminSidebar";
 import AdminAchievementGrid from "./AdminAchievementGrid";
@@ -88,7 +88,6 @@ export default function AdminPanel() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [windowWidth, setWindowWidth] = useState(0);
-  const [sortBy, setSortBy] = useState<string>("newest");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
   const {
@@ -186,49 +185,12 @@ if (searchQuery) {
         if (activeFilters.includes("top10")) {
           filtered = filtered.filter((a) => a.overAllTop10);
         }
-
-        // Sort based on selection
-        if (sortBy === "newest") {
-          filtered.sort((a, b) => {
-            const dateA = new Date(a.approved || a.submissionDate).getTime();
-            const dateB = new Date(b.approved || b.submissionDate).getTime();
-            return dateB - dateA;
-          });
-        } else if (sortBy === "oldest") {
-          filtered.sort((a, b) => {
-            const dateA = new Date(a.approved || a.submissionDate).getTime();
-            const dateB = new Date(b.approved || b.submissionDate).getTime();
-            return dateA - dateB;
-          });
-        } else if (sortBy === "name_asc") {
-          filtered.sort((a, b) => a.fullName.localeCompare(b.fullName));
-        } else if (sortBy === "name_desc") {
-          filtered.sort((a, b) => b.fullName.localeCompare(a.fullName));
-        }
       } else {
         // For specific categories
         filtered = filtered.filter(
           (a) => a.achievementCategory === selectedCategory && !a.archived
         );
 
-        // Apply additional sorting
-        if (sortBy === "newest") {
-          filtered.sort((a, b) => {
-            const dateA = new Date(a.approved || a.submissionDate).getTime();
-            const dateB = new Date(b.approved || b.submissionDate).getTime();
-            return dateB - dateA;
-          });
-        } else if (sortBy === "oldest") {
-          filtered.sort((a, b) => {
-            const dateA = new Date(a.approved || a.submissionDate).getTime();
-            const dateB = new Date(b.approved || b.submissionDate).getTime();
-            return dateA - dateB;
-          });
-        } else if (sortBy === "name_asc") {
-          filtered.sort((a, b) => a.fullName.localeCompare(b.fullName));
-        } else if (sortBy === "name_desc") {
-          filtered.sort((a, b) => b.fullName.localeCompare(a.fullName));
-        }
 
         // Make sure Top 10 are at the beginning
         filtered.sort((a, b) => {
@@ -239,7 +201,7 @@ if (searchQuery) {
       }
 
       return filtered;
-  }, [achievements, selectedCategory, searchQuery, sortBy, activeFilters]);
+  }, [achievements, selectedCategory, searchQuery, activeFilters]);
 
   const handleSelectCategory = (category: string) => {
     startAnimationSequence();

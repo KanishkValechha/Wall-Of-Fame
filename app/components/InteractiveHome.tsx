@@ -1,5 +1,5 @@
 "use client";
-import { categories } from "../data/achievements";
+import { categories } from "../types/categories";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";

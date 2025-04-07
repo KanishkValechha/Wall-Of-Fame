@@ -67,32 +67,24 @@ function AdminAchievementCard({
           "0 10px 30px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.06)",
       }}
     >
-      {/* Drag handle */}
-      <div 
-        className="absolute top-3 left-3 z-40 bg-white/30 backdrop-blur-sm p-1 rounded-md"
-        {...listeners}
-      >
-        <div className="w-5 h-5 flex flex-col justify-between">
-          <div className="h-0.5 w-full bg-white rounded-full"></div>
-          <div className="h-0.5 w-full bg-white rounded-full"></div>
-          <div className="h-0.5 w-full bg-white rounded-full"></div>
-        </div>
-      </div>
-
-      {/* Status indicator - moved right to accommodate drag handle */}
-      <div className="absolute top-3 left-10 z-30">
-        <div
-          className={cn(
-            "h-2 w-2 rounded-full",
-            approvalStatus === "approved"
-              ? "bg-emerald-500"
-              : approvalStatus === "pending"
-              ? "bg-amber-500"
-              : "bg-red-500",
-            achievement.archived && "bg-gray-400"
-          )}
-        />
-      </div>
+<div
+  className={cn(
+    "absolute top-3 left-3 z-40 p-1 rounded-md backdrop-blur-sm",
+    approvalStatus === "approved"
+      ? "bg-emerald-500"
+      : approvalStatus === "pending"
+      ? "bg-amber-500"
+      : "bg-red-500",
+    achievement.archived && "bg-gray-400"
+  )}
+  {...listeners}
+>
+  <div className="w-5 h-5 flex flex-col justify-between">
+    <div className="h-0.5 w-full bg-white rounded-full"></div>
+    <div className="h-0.5 w-full bg-white rounded-full"></div>
+    <div className="h-0.5 w-full bg-white rounded-full"></div>
+  </div>
+</div>
 
       {/* Top 10 badge */}
       {(

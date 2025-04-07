@@ -19,13 +19,24 @@ import {
   verticalListSortingStrategy,
   horizontalListSortingStrategy
 } from "@dnd-kit/sortable";
+import {categories} from "@/app/types/categories"
 import { SortableItem } from "@/app/admin/SortableItem";
+
+type Category = (typeof categories)[number];
+
+// Interface for categorized achievements
+interface CategorizedAchievements {
+  top10: Achievement[];
+  unarchived: Achievement[];
+  archived: Achievement[];
+  categorizedUnarchived?: Record<string, Achievement[]>;
+}
 
 interface AdminAchievementGridProps {
   achievements: Achievement[];
   showContent: boolean;
   isContentFadingOut: boolean;
-  selectedCategory: string;
+  selectedCategory: Category;
   onAchievementClick: (achievement: Achievement) => void;
   onToggleArchive: (achievement: Achievement) => void;
   onToggleTop10: (achievement: Achievement) => void;
@@ -65,7 +76,7 @@ export default function AdminAchievementGrid({
   const getSectionedAchievements = (
     achievements: Achievement[],
     selectedCategory: string
-  ) => {
+  ): CategorizedAchievements => {
     // Skip sectioning for special categories
     if (
       ["Top 10", "Pending Students", "Archived"].includes(
@@ -77,6 +88,42 @@ export default function AdminAchievementGrid({
         unarchived: achievements.sort((a, b) => a.order - b.order), 
         archived: [] 
       };
+    }
+    
+    // For "All Achievements" category, organize unarchived by categories
+    if (selectedCategory === "All Achievements") {
+      const top10 = achievements
+        .filter((a) => a.overAllTop10)
+        .sort((a, b) => a.order - b.order);
+      
+      const unarchived = achievements
+        .filter((a) => !a.overAllTop10 && !a.archived)
+        .sort((a, b) => a.order - b.order);
+      
+      const archived = achievements
+        .filter((a) => !a.overAllTop10 && a.archived)
+        .sort((a, b) => a.order - b.order);
+
+      // Group unarchived achievements by category
+      const categorizedUnarchived: Record<string, Achievement[]> = {};
+      
+      // Initialize with empty arrays for each category (except "Overall TOP 10")
+      categories.slice(1).forEach(cat => {
+        categorizedUnarchived[cat] = [];
+      });
+
+      // Populate categories
+      unarchived.forEach(achievement => {
+        const category = achievement.achievementCategory;
+        if (category && category !== "Overall TOP 10") {
+          if (!categorizedUnarchived[category]) {
+            categorizedUnarchived[category] = [];
+          }
+          categorizedUnarchived[category].push(achievement);
+        }
+      });
+
+      return { top10, unarchived, archived, categorizedUnarchived };
     }
 
     // For specific categories, separate into three sections
@@ -96,7 +143,7 @@ export default function AdminAchievementGrid({
   };
   
   // Separate achievements into sections when viewing a specific category
-  const { top10, unarchived, archived } = getSectionedAchievements(
+  const { top10, unarchived, archived, categorizedUnarchived } = getSectionedAchievements(
     achievements,
     selectedCategory
   );
@@ -104,6 +151,7 @@ export default function AdminAchievementGrid({
   const hasTop10Section = top10.length > 0;
   const hasUnarchivedSection = unarchived.length > 0;
   const hasArchivedSection = archived.length > 0;
+  const isAllAchievements = selectedCategory === "All Achievements";
 
   // Handle drag end event
   const handleDragEnd = (event: DragEndEvent, sectionType: 'top10' | 'unarchived' | 'archived', items: Achievement[]) => {
@@ -175,28 +223,66 @@ export default function AdminAchievementGrid({
                   {/* Unarchived section */}
                   {hasUnarchivedSection && (
                     <>
-                      <SectionHeader title="Unarchived Achievements" />
-                      <DndContext 
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
-                      >
-                        <div className="grid grid-cols-1 gap-6 mb-6">
-                          <SortableContext 
-                            items={unarchived.map(a => a._id)} 
-                            strategy={verticalListSortingStrategy}
+                      {!isAllAchievements ? (
+                        <>
+                          <SectionHeader title="Unarchived Achievements" />
+                          <DndContext 
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
                           >
-                            <AnimatedCards
-                              achievements={unarchived}
-                              onAchievementClick={onAchievementClick}
-                              onToggleArchive={onToggleArchive}
-                              onToggleTop10={onToggleTop10}
-                              startIndex={top10.length}
-                              getApprovalStatus={getApprovalStatus}
-                            />
-                          </SortableContext>
-                        </div>
-                      </DndContext>
+                            <div className="grid grid-cols-1 gap-6 mb-6">
+                              <SortableContext 
+                                items={unarchived.map(a => a._id)} 
+                                strategy={verticalListSortingStrategy}
+                              >
+                                <AnimatedCards
+                                  achievements={unarchived}
+                                  onAchievementClick={onAchievementClick}
+                                  onToggleArchive={onToggleArchive}
+                                  onToggleTop10={onToggleTop10}
+                                  startIndex={top10.length}
+                                  getApprovalStatus={getApprovalStatus}
+                                />
+                              </SortableContext>
+                            </div>
+                          </DndContext>
+                        </>
+                      ) : (
+                        <>
+                          <SectionHeader title="Unarchived Achievements" />
+                          {categorizedUnarchived && categories.slice(1).map(category => {
+                            const categoryAchievements = categorizedUnarchived[category] || [];
+                            if (categoryAchievements.length === 0) return null;
+                            
+                            return (
+                              <div key={category} className="mb-8">
+                                <h3 className="text-lg font-medium text-gray-700 mb-4 ml-2">{category}</h3>
+                                <DndContext 
+                                  sensors={sensors}
+                                  collisionDetection={closestCenter}
+                                  onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
+                                >
+                                  <div className="grid grid-cols-1 gap-6 mb-6">
+                                    <SortableContext 
+                                      items={categoryAchievements.map(a => a._id)} 
+                                      strategy={verticalListSortingStrategy}
+                                    >
+                                      <AnimatedCards
+                                        achievements={categoryAchievements}
+                                        onAchievementClick={onAchievementClick}
+                                        onToggleArchive={onToggleArchive}
+                                        onToggleTop10={onToggleTop10}
+                                        getApprovalStatus={getApprovalStatus}
+                                      />
+                                    </SortableContext>
+                                  </div>
+                                </DndContext>
+                              </div>
+                            );
+                          })}
+                        </>
+                      )}
                       {hasArchivedSection && (
                         <div className="border-t border-gray-100 my-8"></div>
                       )}
@@ -292,28 +378,66 @@ export default function AdminAchievementGrid({
                   {/* Unarchived section */}
                   {hasUnarchivedSection && (
                     <>
-                      <SectionHeader title="Unarchived Achievements" />
-                      <DndContext 
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
-                      >
-                        <div className="grid grid-cols-2 gap-6 mb-6">
-                          <SortableContext 
-                            items={unarchived.map(a => a._id)} 
-                            strategy={strategy}
+                      {!isAllAchievements ? (
+                        <>
+                          <SectionHeader title="Unarchived Achievements" />
+                          <DndContext 
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
                           >
-                            <AnimatedCards
-                              achievements={unarchived}
-                              onAchievementClick={onAchievementClick}
-                              onToggleArchive={onToggleArchive}
-                              onToggleTop10={onToggleTop10}
-                              startIndex={top10.length}
-                              getApprovalStatus={getApprovalStatus}
-                            />
-                          </SortableContext>
-                        </div>
-                      </DndContext>
+                            <div className="grid grid-cols-2 gap-6 mb-6">
+                              <SortableContext 
+                                items={unarchived.map(a => a._id)} 
+                                strategy={strategy}
+                              >
+                                <AnimatedCards
+                                  achievements={unarchived}
+                                  onAchievementClick={onAchievementClick}
+                                  onToggleArchive={onToggleArchive}
+                                  onToggleTop10={onToggleTop10}
+                                  startIndex={top10.length}
+                                  getApprovalStatus={getApprovalStatus}
+                                />
+                              </SortableContext>
+                            </div>
+                          </DndContext>
+                        </>
+                      ) : (
+                        <>
+                          <SectionHeader title="Unarchived Achievements" />
+                          {categorizedUnarchived && categories.slice(1).map(category => {
+                            const categoryAchievements = categorizedUnarchived[category] || [];
+                            if (categoryAchievements.length === 0) return null;
+                            
+                            return (
+                              <div key={category} className="mb-8">
+                                <h3 className="text-lg font-medium text-gray-700 mb-4 ml-2">{category}</h3>
+                                <DndContext 
+                                  sensors={sensors}
+                                  collisionDetection={closestCenter}
+                                  onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
+                                >
+                                  <div className="grid grid-cols-2 gap-6 mb-6">
+                                    <SortableContext 
+                                      items={categoryAchievements.map(a => a._id)} 
+                                      strategy={strategy}
+                                    >
+                                      <AnimatedCards
+                                        achievements={categoryAchievements}
+                                        onAchievementClick={onAchievementClick}
+                                        onToggleArchive={onToggleArchive}
+                                        onToggleTop10={onToggleTop10}
+                                        getApprovalStatus={getApprovalStatus}
+                                      />
+                                    </SortableContext>
+                                  </div>
+                                </DndContext>
+                              </div>
+                            );
+                          })}
+                        </>
+                      )}
                       {hasArchivedSection && (
                         <div className="border-t border-gray-100 my-8"></div>
                       )}
@@ -406,28 +530,66 @@ export default function AdminAchievementGrid({
                 {/* Unarchived section */}
                 {hasUnarchivedSection && (
                   <>
-                    <SectionHeader title="Unarchived Achievements" />
-                    <DndContext 
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
-                    >
-                      <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
-                        <SortableContext 
-                          items={unarchived.map(a => a._id)} 
-                          strategy={strategy}
+                    {!isAllAchievements ? (
+                      <>
+                        <SectionHeader title="Unarchived Achievements" />
+                        <DndContext 
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
                         >
-                          <AnimatedCards
-                            achievements={unarchived}
-                            onAchievementClick={onAchievementClick}
-                            onToggleArchive={onToggleArchive}
-                            onToggleTop10={onToggleTop10}
-                            startIndex={top10.length}
-                            getApprovalStatus={getApprovalStatus}
-                          />
-                        </SortableContext>
-                      </div>
-                    </DndContext>
+                          <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+                            <SortableContext 
+                              items={unarchived.map(a => a._id)} 
+                              strategy={strategy}
+                            >
+                              <AnimatedCards
+                                achievements={unarchived}
+                                onAchievementClick={onAchievementClick}
+                                onToggleArchive={onToggleArchive}
+                                onToggleTop10={onToggleTop10}
+                                startIndex={top10.length}
+                                getApprovalStatus={getApprovalStatus}
+                              />
+                            </SortableContext>
+                          </div>
+                        </DndContext>
+                      </>
+                    ) : (
+                      <>
+                        <SectionHeader title="Unarchived Achievements" />
+                        {categorizedUnarchived && categories.slice(1).map(category => {
+                          const categoryAchievements = categorizedUnarchived[category] || [];
+                          if (categoryAchievements.length === 0) return null;
+                          
+                          return (
+                            <div key={category} className="mb-12">
+                              <h3 className="text-lg font-medium text-gray-700 mb-4 ml-2">{category}</h3>
+                              <DndContext 
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={(event) => handleDragEnd(event, 'unarchived', unarchived)}
+                              >
+                                <div className="grid grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+                                  <SortableContext 
+                                    items={categoryAchievements.map(a => a._id)} 
+                                    strategy={strategy}
+                                  >
+                                    <AnimatedCards
+                                      achievements={categoryAchievements}
+                                      onAchievementClick={onAchievementClick}
+                                      onToggleArchive={onToggleArchive}
+                                      onToggleTop10={onToggleTop10}
+                                      getApprovalStatus={getApprovalStatus}
+                                    />
+                                  </SortableContext>
+                                </div>
+                              </DndContext>
+                            </div>
+                          );
+                        })}
+                      </>
+                    )}
                     {hasArchivedSection && (
                       <div className="border-t border-gray-100 my-12"></div>
                     )}

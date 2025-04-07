@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { categories } from "../data/achievements";
+import { categories } from "../types/categories";
 import { Search, Filter, Check, X, MessageCircle } from "lucide-react";
 import { RemarksModal } from "./RemarksModal";
 import { StudentDetailsModal } from "./StudentDetailsModal";

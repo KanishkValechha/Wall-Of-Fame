@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { categories } from "../data/achievements";
+import { categories } from "../types/categories";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import axios from "axios";
