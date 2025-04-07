@@ -19,10 +19,11 @@ function PolaroidCardComponent({ achievement, onClick }: PolaroidCardProps) {
       }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative rounded-xl overflow-hidden cursor-pointer"
+      className="group relative rounded-xl cursor-pointer"
       onClick={onClick}
       style={{
-        width: "100%",
+        width: "250px",  // Set explicit width
+        height: "350px", // Set explicit height
         aspectRatio: "3/4",
         background: "white",
         boxShadow: "0 10px 30px rgba(0, 0, 0, 0.06)",
@@ -37,6 +38,7 @@ function PolaroidCardComponent({ achievement, onClick }: PolaroidCardProps) {
       <motion.div
         className="absolute inset-0"
         layoutId={`image-container-${achievement._id}`}
+        style={{ width: "100%", height: "100%" }} // Ensure the image container has dimensions
       >
         {achievement.imageUrl && (
           <Image

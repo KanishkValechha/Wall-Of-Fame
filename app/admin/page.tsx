@@ -380,9 +380,9 @@ const refreshData = async () => {
 
   const handleReorder = (sectionType: 'top10' | 'unarchived' | 'archived', items: Achievement[]) => {
     // Only allow reordering in Top 10 section
-    if (sectionType !== 'top10') {
-      return;
-    }
+    // if (sectionType !== 'top10') {
+    //   return;
+    // }
     
     console.log("Reordering items:", items.map(item => ({
       id: item._id,
@@ -437,6 +437,46 @@ const refreshData = async () => {
     
     // Update the state with the new order
     setAchievements(updatedAchievements);
+    
+    // Prepare data for backend update - only send items with changed order
+    const changedItems = items.map((item, index) => {
+      const newOrder = index + 1; // 1-based indexing for order
+      const oldOrder = achievements.find(a => a._id === item._id)?.order;
+      
+      return {
+        _id: item._id,
+        order: newOrder,
+        hasChanged: newOrder !== oldOrder
+      };
+    }).filter(item => item.hasChanged);
+    
+    // Send update to backend if there are changes
+    if (changedItems.length > 0) {
+      try {
+        fetch('/api/achievements', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(
+            changedItems.map(({_id, order}) => ({_id, order}))),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to update achievement order');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Order updated successfully:', data);
+        })
+        .catch(error => {
+          console.error('Error updating achievement order:', error);
+        });
+      } catch (error) {
+        console.error('Error sending order update:', error);
+      }
+    }
     
     // Log the updated order for verification
     console.log("New order:", items.map((item, index) => ({

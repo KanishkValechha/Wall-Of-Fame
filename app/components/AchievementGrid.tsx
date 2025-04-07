@@ -102,7 +102,11 @@ export function DesktopAchievementGrid({
                     delay: isReturning ? 0 : index * staggerDuration,
                   }}
                   className="absolute transform"
-                  style={position}
+                  style={{
+                    ...position,
+                    // width: '15vw', // Add explicit width
+                    // height: 'auto', // Allow height to adjust based on content
+                  }}
                 >
                   <PolaroidCard
                     achievement={achievement}
