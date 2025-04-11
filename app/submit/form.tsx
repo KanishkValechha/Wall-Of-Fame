@@ -1,15 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-
-interface FormField {
-  name: string;
-  type: "document" | "text" | "option";
-  label?: string;
-  placeholder?: string;
-  required?: boolean;
-  options?: string[];
-}
-export type { FormField };
+import { FormField } from '@/app/types/achievementFields';
 
 interface DynamicFormProps {
   title?: string;
