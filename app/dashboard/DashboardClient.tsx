@@ -25,10 +25,11 @@ export default function DashboardClient() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
-  const fetchAchievements = async (email: string) => {
+  const fetchAchievements = async (email: string|null) => {
     try {
       const response = await fetch(
-        `/api/achievements?professorEmail=${email}&blacklist=userImage,certificateProof`,
+        // `/api/achievements?professorEmail=${email}&blacklist=userImage,certificateProof`,
+        `/api/achievements?blacklist=userImage,certificateProof`,
         {
           method: "GET",
           headers: {
@@ -152,9 +153,9 @@ export default function DashboardClient() {
   useEffect(() => {
     const loadAchievements = async () => {
       try {
-        if (!email) {
-          throw new Error("Email query parameter is missing.");
-        }
+        // if (!email) {
+        //   throw new Error("Email query parameter is missing.");
+        // }
 
         const achievements = await fetchAchievements(email);
         setSubmissions(achievements);
@@ -662,13 +663,13 @@ export default function DashboardClient() {
         </div>
       )}
 
-      <StudentDetailsModal
+      {selectedStudent && <StudentDetailsModal
         isOpen={selectedStudent !== null}
         onClose={() => setSelectedStudent(null)}
         student={selectedStudent}
         onStatusChange={handleStatusChange}
         onOpenRemarks={handleOpenRemarks}
-      />
+      />}
 
       <RemarksModal
         isOpen={remarksModal.isOpen}

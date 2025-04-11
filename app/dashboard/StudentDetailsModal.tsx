@@ -10,7 +10,7 @@ import { ApprovalRequestModal } from "./ApprovalRequestModal";
 interface StudentDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  student: Achievement | null;
+  student: Achievement;
   onStatusChange: (
     id: string,
     status: string,
@@ -32,8 +32,8 @@ export function StudentDetailsModal({
   onStatusChange,
   onOpenRemarks,
 }: StudentDetailsModalProps) {
-  const [description, setDescription] = useState("");
-  const [achievementTitle, setAchievementTitle] = useState("");
+  const [description, setDescription] = useState(student?.description);
+  const [achievementTitle, setAchievementTitle] = useState(student?.title);
   const [studentData, setStudentData] = useState<Achievement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
@@ -261,8 +261,8 @@ export function StudentDetailsModal({
                         onStatusChange(
                           student._id,
                           "approved",
-                          description,
-                          achievementTitle
+                          description||"",
+                          achievementTitle||""
                         )
                       }
                     >
@@ -277,8 +277,8 @@ export function StudentDetailsModal({
                         onStatusChange(
                           student._id,
                           "rejected",
-                          description,
-                          achievementTitle
+                          description||"",
+                          achievementTitle||""
                         )
                       }
                     >

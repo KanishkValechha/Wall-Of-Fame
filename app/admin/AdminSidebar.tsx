@@ -181,7 +181,7 @@ export default function AdminSidebar({
                   Public View
                 </Button>
               </Link>
-              <Link href="/Dashboard" passHref>
+              <Link href="/dashboard" passHref>
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-left text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-50"

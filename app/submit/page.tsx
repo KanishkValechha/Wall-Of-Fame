@@ -1,51 +1,168 @@
 "use client";
-
-import { useState, useRef} from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { categories } from "../types/categories";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import React, { useState } from "react";
+import DynamicForm from "./form";
+import { FormField } from "./form";
 import axios from "axios";
 
-export default function SubmitPage() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    fullName: "",
-    registrationNumber: "",
-    mobileNumber: "",
-    studentMail: "",
-    achievementCategory: "",
-    professorName: "",
-    professorEmail: "",
-    userImage: null as File | null,
-    certificateProof: null as File | null,
-    submissionDate: new Date().toISOString(),
-    approved: null,
-    remarks: "",
-  });
+// Define types for our forms
+interface BasicFormData {
+  fullName: string;
+  registrationNumber: string;
+  mobileNumber: string;
+  email: string;
+  achievementCategory: string;
+  userImage: File;
+}
 
-  const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(
-    null
-  );
-  const handleBack = () => {
-    router.push("/?return=true");
+// Generic type for achievement form data
+type AchievementFormData = Record<string, any>;
+  // Form field configurations for each achievement type
+  const achievementFormFields: Record<string, FormField[]> = {
+    ONLINE_COURSES: [
+      { name: "courseName", type: "text", label: "Course Name", required: true },
+      { name: "courseCode", type: "text", label: "Course Code", required: true },
+      { name: "startDate", type: "text", label: "Start Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "endDate", type: "text", label: "End Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "duration", type: "text", label: "Duration", placeholder: "e.g., 8 weeks", required: true },
+      { name: "platform", type: "text", label: "Platform", placeholder: "e.g., Coursera, Udemy", required: true },
+      { name: "certificatePDF", type: "document", label: "Certificate PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    OUTREACH_PROGRAMS: [
+      { name: "activityName", type: "text", label: "Activity Name", required: true },
+      { name: "organizingUnit", type: "text", label: "Organizing Unit", required: true },
+      { name: "schemeName", type: "text", label: "Scheme Name", required: true },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "reportPDF", type: "document", label: "Report PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    EVENT_PARTICIPATION: [
+      { name: "eventName", type: "text", label: "Event Name", required: true },
+      { 
+        name: "eventType", 
+        type: "option", 
+        label: "Event Type", 
+        options: ["Workshop", "Seminar", "Competition", "Conference", "Hackathon", "Other"], 
+        required: true 
+      },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "certificatePDF", type: "document", label: "Certificate PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    AWARDS: [
+      { name: "awardName", type: "text", label: "Award Name", required: true },
+      { name: "organization", type: "text", label: "Organization", required: true },
+      { name: "level", type: "text", label: "Level", required: true },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "amount", type: "text", label: "Amount", placeholder: "e.g., 10000", required: true },
+      { name: "awardPdf", type: "document", label: "Award PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    SCHOLARSHIPS: [
+      { name: "scholarshipName", type: "text", label: "Scholarship Name", required: true },
+      { name: "issuingAuthority", type: "text", label: "Issuing Authority", required: true },
+      { name: "amount", type: "text", label: "Amount", placeholder: "e.g., 20000", required: true },
+      { name: "proofPDF", type: "document", label: "Proof PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    RESEARCH_PUBLICATION: [
+      { name: "publicationTitle", type: "text", label: "Publication Title", required: true },
+      { name: "journalName", type: "text", label: "Journal Name", required: true },
+      { name: "publicationType", type: "text", label: "Publication Type", required: true },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "proofPDF", type: "document", label: "Proof PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    ACHIEVEMENTS: [
+      { name: "achievementName", type: "text", label: "Achievement Name", required: true },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "proofPDF", type: "document", label: "Proof PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    INTERNSHIPS: [
+      { name: "organization", type: "text", label: "Organization", required: true },
+      { name: "startDate", type: "text", label: "Start Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "endDate", type: "text", label: "End Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "stipend", type: "text", label: "Stipend", placeholder: "e.g., 5000/month", required: true },
+      { name: "internshipCertificatePdf", type: "document", label: "Internship Certificate PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    STARTUPS: [
+      { name: "startupName", type: "text", label: "Startup Name", required: true },
+      { name: "nature", type: "text", label: "Nature", required: true },
+      { name: "yearCommenced", type: "text", label: "Year Commenced", placeholder: "e.g., 2023", required: true },
+      { name: "certificate", type: "text", label: "Certificate", required: true },
+      { name: "registrationLetterPdf", type: "document", label: "Registration Letter PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    INNOVATIONS: [
+      { name: "innovationName", type: "text", label: "Innovation Name", required: true },
+      { name: "nature", type: "text", label: "Nature", required: true },
+      { name: "sanctionedAmount", type: "text", label: "Sanctioned Amount", required: true },
+      { name: "receivedAmount", type: "text", label: "Received Amount", required: true },
+      { name: "letterDate", type: "text", label: "Letter Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "commercializationLetterPdf", type: "document", label: "Commercialization Letter PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    BUSINESS_EXAMS: [
+      { name: "examName", type: "text", label: "Exam Name", required: true },
+      { name: "type", type: "text", label: "Type", required: true },
+      { name: "activityName", type: "text", label: "Activity Name", required: true },
+      { name: "proofPDF", type: "document", label: "Proof PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
   };
-  const userImageRef = useRef<HTMLInputElement>(null);
-  const certificateProofRef = useRef<HTMLInputElement>(null);  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+
+// Combined data type
+type CombinedFormData = BasicFormData & AchievementFormData;
+
+export default function AchievementFormPage() {
+  const [submissionData, setSubmissionData] = useState<CombinedFormData | null>(null);
+  const [activeForm, setActiveForm] = useState<string>("basic");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Form fields for the basic information
+  const basicFormFields: FormField[] = [
+    { name: "fullName", type: "text", label: "Full Name", required: true },
+    { name: "registrationNumber", type: "text", label: "Registration Number", required: true },
+    { name: "mobileNumber", type: "text", label: "Mobile Number", placeholder: "e.g., 9876543210", required: true },
+    { name: "studentMail", type: "text", label: "Email Address", placeholder: "e.g., example@outlook.com", required: true },
+    { name: "userImage", type: "document", label: "User Image", required: true },
+    { 
+      name: "achievementCategory", 
+      type: "option", 
+      label: "Achievement Type", 
+      options: [
+        "ONLINE_COURSES", "OUTREACH_PROGRAMS", "EVENT_PARTICIPATION", "AWARDS",
+        "SCHOLARSHIPS", "RESEARCH_PUBLICATION", "ACHIEVEMENTS", "INTERNSHIPS",
+        "STARTUPS", "INNOVATIONS", "BUSINESS_EXAMS"
+      ], 
+      required: true 
+    }
+  ];
+
+  // Store form data between steps
+  const [formData, setFormData] = useState<Partial<CombinedFormData>>({});
+  
+  const handleSubmit = async (data:AchievementFormData) => {  
     const formDataToSend = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
+    const structuredData = {
+      ...formData,
+      AchievementData: JSON.stringify(data), // Stringify AchievementData
+    };
+  
+    Object.entries(structuredData).forEach(([key, value]) => {
       if (value instanceof File) {
         formDataToSend.append(key, value);
       } else {
@@ -59,175 +176,115 @@ export default function SubmitPage() {
       });
   
       if (response.status === 200) {
-        setMessage({ text: "Submission successful!", isError: false });
-  
-        // Reset form data
-        setFormData({
-          fullName: "",
-          registrationNumber: "",
-          mobileNumber: "",
-          studentMail: "",
-          achievementCategory: "",
-          professorName: "",
-          professorEmail: "",
-          userImage: null,
-          certificateProof: null,
-          submissionDate: new Date().toISOString(),
-          approved: null,
-          remarks: "",
-        });
-  
-        // Clear file input fields
-        if (userImageRef.current) userImageRef.current.value = "";
-        if (certificateProofRef.current) certificateProofRef.current.value = "";
+        setIsSubmitting(false);
+        console.log("Submission successful!");
       } else {
-        setMessage({ text: "Submission failed. Please try again.", isError: true });
+        console.error("Submission failed. Please try again.");
       }
-    } catch (error:any) {
-      console.log(error);
-      if (error.response.status === 400) {
-        setMessage({ text: `Error submitting form.${error.response.data.error}`, isError: true });
-      } else {
-      setMessage({ text: `Error submitting form. Check your connection. ${error}`, isError: true });
-    }}
+    } catch (error: any) {
+      console.error("Error submitting form:", error);
+    }
+  };
+  
+  // Handle the first form submission
+  const handleBasicFormSubmit = (data: Record<string, any>) => {
+    setFormData(prev => ({ ...prev, ...data }));
+    setActiveForm(data.achievementCategory);
+  };
+  
+  // Handle the achievement specific form submission
+  const handleAchievementFormSubmit = (data: AchievementFormData) => {
+    setIsSubmitting(true);
+    handleSubmit(data); // Trigger handleSubmit
+  };
+  
+  // Handle going back to the basic form
+  const handleBackToBasic = () => {
+    setActiveForm("basic");
+    // Pre-fill the basic form with previously submitted data
+    setFormData(prev => ({ ...prev }));
+  };
+  
+  // Handle form reset
+  const handleReset = () => {
+    setFormData({});
+    setSubmissionData(null);
+    setActiveForm("basic");
+  };
+
+  // Format file names for display in the success summary
+  const formatFileData = (data: CombinedFormData) => {
+    const formattedData = { ...data };
+    
+    // Format file objects to show just the name
+    Object.entries(formattedData).forEach(([key, value]) => {
+      if (value instanceof File) {
+        formattedData[key] = `File: ${value.name}`;
+      }
+    });
+    
+    return formattedData;
   };
 
   return (
-    <div className="min-h-screen fancy-bg p-4">
-      <div className="max-w-2xl mx-auto pt-8">
-        <Button variant="ghost" className="mb-6" onClick={handleBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Wall of Fame
-        </Button>
-
-        <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 shadow-lg">
-          <h1 className="text-3xl font-display mb-6">Submit Achievement</h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              required
-              value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-            />
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-8 text-center">Achievement Submission Form</h1>
+      
+      {submissionData ? (
+        <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+          <h2 className="text-xl font-semibold text-green-800 mb-4">Submission Successful!</h2>
+          <div className="bg-white p-4 rounded-md shadow-sm">
+            <h3 className="font-medium mb-2">Form Data Summary:</h3>
+            <pre className="bg-gray-50 p-4 rounded text-sm overflow-auto">
+              {JSON.stringify(formatFileData(submissionData), null, 2)}
+            </pre>
           </div>
+          <button 
+            onClick={handleReset}
+            className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Submit Another Achievement
+          </button>
+        </div>
+      ) : (
+        <>
+          {activeForm === "basic" ? (
+            <div className="mb-8">
+              <DynamicForm
+                title="Basic Information"
+                fields={basicFormFields}
+                submitButtonText="Continue to Achievement Details"
+                onSubmit={handleBasicFormSubmit}
+                initialValues={formData} // Pass previously submitted data as initial values
+              />
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4 flex items-center">
+                <button 
+                  onClick={handleBackToBasic}
+                  className="text-blue-600 hover:text-blue-800 flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                  </svg>
+                  Back to Basic Information
+                </button>
+              </div>
+              
+              <DynamicForm
+                title={`${activeForm.replace(/_/g, " ")} Details`}
+                fields={achievementFormFields[activeForm]}
+                submitButtonText={isSubmitting ? "Submitting..." : "Submit Achievement"}
+                onSubmit={handleAchievementFormSubmit}
+                initialValues={formData} // Pass previously submitted data as initial values
+              />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
 
-          <div className="space-y-2">
-            <Label htmlFor="registrationNumber">Registration Number</Label>
-            <Input
-              id="registrationNumber"
-              required
-              value={formData.registrationNumber}
-              onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="mobileNumber">Mobile Number</Label>
-            <Input
-              id="mobileNumber"
-              type="tel"
-              required
-              value={formData.mobileNumber}
-              onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="studentMail">Outlook Mail</Label>
-            <Input
-              id="studentMail"
-              type="email"
-              required
-              value={formData.studentMail}
-              onChange={(e) => setFormData({ ...formData, studentMail: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="achievementCategory">Achievement Category</Label>
-            <Select
-              value={formData.achievementCategory}
-              onValueChange={(value) => setFormData({ ...formData, achievementCategory: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                  {categories
-                    .filter((cat) => cat !== "Overall TOP 10")
-                    .map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="professorName">Professor Name</Label>
-            <Input
-              id="professorName"
-              required
-              value={formData.professorName}
-              onChange={(e) => setFormData({ ...formData, professorName: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="professorEmail">Professor Email</Label>
-            <Input
-              id="professorEmail"
-              type="email"
-              required
-              value={formData.professorEmail}
-              onChange={(e) => setFormData({ ...formData, professorEmail: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="userImage">User Image</Label>
-            <Input
-              id="userImage"
-              type="file"
-              required
-              accept="image/*"
-              onChange={(e) => setFormData({ ...formData, userImage: e.target.files?.[0] || null as unknown as File })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="certificateProof">Certificate/Proof</Label>
-            <Input
-              id="certificateProof"
-              type="file"
-              required
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={(e) => setFormData({ ...formData, certificateProof: e.target.files?.[0] || null as unknown as File})}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="remarks">Remarks for professor</Label>
-            <Input
-              id="remarks"
-              required
-              value={formData.remarks}
-              onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-            />
-          </div>
-          {message && (
-          <div className={`p-2 rounded-md text-center ${message.isError ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}>
-            {message.text}
-          </div>
-        )}
-
-          <Button type="submit" className="w-full">Submit Achievement</Button>
-        </form>
-      </div>
-      </div>
-      </div>
-  )};
+export { achievementFormFields };
