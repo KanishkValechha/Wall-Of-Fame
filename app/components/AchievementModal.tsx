@@ -17,7 +17,7 @@ export default function AchievementModal({
   isOpen,
   onClose,
 }: AchievementModalProps) {
-  console.log(achievement);
+  // console.log(achievement);
   const [processedAchievement, setProcessedAchievement] =
     useState<Achievement | null>(null);
   const [isLoading, setIsLoading] = useState(true);

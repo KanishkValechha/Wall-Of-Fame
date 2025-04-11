@@ -24,6 +24,7 @@ import {
 import { categories } from "../types/categories";
 import Image from "next/image";
 import { format } from "date-fns";
+import { achievementFormFields } from "../types/achievementFields";
 
 interface EditAchievementModalProps {
   achievement: Achievement;
@@ -81,6 +82,95 @@ export default function EditAchievementModal({
     // Send only the changed fields to the parent component
     onSave(changedFields as Achievement);
     // Don't call onClose() here as it will be handled by the parent
+  };
+
+  // Function to render dynamic fields based on achievement category
+  const renderCategoryFields = () => {
+    const category = editedAchievement.achievementCategory;
+    if (!category || !achievementFormFields[category]) return null;
+    
+    // Skip title and description fields as they're already in the main form
+    const fields = achievementFormFields[category].filter(
+      field => field.name !== "title" && field.name !== "description"
+    );
+    
+    if (fields.length === 0) return null;
+    
+    return (
+      <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+        <div className="col-span-2">
+          <Label className="font-medium text-sm text-gray-500">
+            Category-specific Information
+          </Label>
+        </div>
+        
+        {fields.map((field) => {
+          if (field.type === "document") {
+            // For document fields, just show a read-only display of the filename
+            return (
+              <div key={field.name} className="col-span-2">
+                <Label htmlFor={field.name}>{field.label}</Label>
+                <div className="text-sm text-gray-500 mt-1">
+                  {editedAchievement[field.name as keyof Achievement] ? 
+                    "Document uploaded" : "No document available"}
+                </div>
+              </div>
+            );
+          } else if (field.type === "option" && field.options) {
+            return (
+              <div key={field.name} className="col-span-1">
+                <Label htmlFor={field.name}>{field.label}</Label>
+                <Select
+                  value={String(editedAchievement[field.name as keyof Achievement] || "")}
+                  onValueChange={(value) => {
+                    setEditedAchievement(prev => ({
+                      ...prev,
+                      [field.name]: value
+                    }));
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={field.placeholder || `Select ${field.label}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {field.options.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            );
+          } else {
+            // For text fields
+            return (
+              <div key={field.name} className={field.name === "description" ? "col-span-2" : "col-span-1"}>
+                <Label htmlFor={field.name}>{field.label}</Label>
+                {field.name === "description" ? (
+                  <Textarea
+                    id={field.name}
+                    name={field.name}
+                    value={String(editedAchievement[field.name as keyof Achievement] || "")}
+                    onChange={handleInputChange}
+                    placeholder={field.placeholder}
+                    className="min-h-[60px]"
+                  />
+                ) : (
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={String(editedAchievement[field.name as keyof Achievement] || "")}
+                    onChange={handleInputChange}
+                    placeholder={field.placeholder}
+                  />
+                )}
+              </div>
+            );
+          }
+        })}
+      </div>
+    );
   };
 
   return (
@@ -177,6 +267,7 @@ export default function EditAchievementModal({
               <Select
                 value={editedAchievement.achievementCategory}
                 onValueChange={handleCategoryChange}
+                disabled={true} // Enable the category selection
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select category" />
@@ -192,42 +283,8 @@ export default function EditAchievementModal({
             </div>
           </div>
 
-          {/* Professor Information */}
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-            <div className="col-span-2">
-              <Label className="font-medium text-sm text-gray-500">
-                Professor Information
-              </Label>
-            </div>
-            <div>
-              <Label htmlFor="professorName">Professor Name</Label>
-              <Input
-                id="professorName"
-                name="professorName"
-                value={editedAchievement.professorName}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="professorEmail">Professor Email</Label>
-              <Input
-                id="professorEmail"
-                name="professorEmail"
-                value={editedAchievement.professorEmail}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="remarks">Remarks</Label>
-              <Textarea
-                id="remarks"
-                name="remarks"
-                value={editedAchievement.remarks}
-                onChange={handleInputChange}
-                className="min-h-[60px]"
-              />
-            </div>
-          </div>
+          {/* Dynamic Category Fields */}
+          {renderCategoryFields()}
 
           {/* Status Information */}
           <div className="grid grid-cols-1 gap-4 pt-2 border-t">
