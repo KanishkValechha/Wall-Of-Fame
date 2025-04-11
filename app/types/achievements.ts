@@ -19,5 +19,5 @@ export interface Achievement {
     title: string;
     description: string;
     order: number;
-  }
-  
+    AchievementData: Record<string, any>;
+}

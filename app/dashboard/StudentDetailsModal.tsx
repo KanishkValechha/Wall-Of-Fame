@@ -24,6 +24,15 @@ interface StudentDetailsModalProps {
     mobile: string
   ) => void;
 }
+interface FormField {
+  name: string;
+  type: "document" | "text" | "option";
+  label?: string;
+  placeholder?: string;
+  required?: boolean;
+  options?: string[];
+}
+
 
 export function StudentDetailsModal({
   isOpen,
@@ -38,6 +47,175 @@ export function StudentDetailsModal({
   const [isLoading, setIsLoading] = useState(true);
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
+  const achievementFormFields: Record<string, FormField[]> = {
+    ONLINE_COURSES: [
+      { name: "courseName", type: "text", label: "Course Name", required: true },
+      { name: "courseCode", type: "text", label: "Course Code", required: true },
+      { name: "startDate", type: "text", label: "Start Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "endDate", type: "text", label: "End Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "duration", type: "text", label: "Duration", placeholder: "e.g., 8 weeks", required: true },
+      { name: "platform", type: "text", label: "Platform", placeholder: "e.g., Coursera, Udemy", required: true },
+      { name: "certificatePDF", type: "document", label: "Certificate PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    OUTREACH_PROGRAMS: [
+      { name: "activityName", type: "text", label: "Activity Name", required: true },
+      { name: "organizingUnit", type: "text", label: "Organizing Unit", required: true },
+      { name: "schemeName", type: "text", label: "Scheme Name", required: true },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "reportPDF", type: "document", label: "Report PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    EVENT_PARTICIPATION: [
+      { name: "eventName", type: "text", label: "Event Name", required: true },
+      { 
+        name: "eventType", 
+        type: "option", 
+        label: "Event Type", 
+        options: ["Workshop", "Seminar", "Competition", "Conference", "Hackathon", "Other"], 
+        required: true 
+      },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "certificatePDF", type: "document", label: "Certificate PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    AWARDS: [
+      { name: "awardName", type: "text", label: "Award Name", required: true },
+      { name: "organization", type: "text", label: "Organization", required: true },
+      { name: "level", type: "text", label: "Level", required: true },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "amount", type: "text", label: "Amount", placeholder: "e.g., 10000", required: true },
+      { name: "awardPdf", type: "document", label: "Award PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    SCHOLARSHIPS: [
+      { name: "scholarshipName", type: "text", label: "Scholarship Name", required: true },
+      { name: "issuingAuthority", type: "text", label: "Issuing Authority", required: true },
+      { name: "amount", type: "text", label: "Amount", placeholder: "e.g., 20000", required: true },
+      { name: "proofPDF", type: "document", label: "Proof PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    RESEARCH_PUBLICATION: [
+      { name: "publicationTitle", type: "text", label: "Publication Title", required: true },
+      { name: "journalName", type: "text", label: "Journal Name", required: true },
+      { name: "publicationType", type: "text", label: "Publication Type", required: true },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "proofPDF", type: "document", label: "Proof PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    ACHIEVEMENTS: [
+      { name: "achievementName", type: "text", label: "Achievement Name", required: true },
+      { name: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "proofPDF", type: "document", label: "Proof PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    INTERNSHIPS: [
+      { name: "organization", type: "text", label: "Organization", required: true },
+      { name: "startDate", type: "text", label: "Start Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "endDate", type: "text", label: "End Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "stipend", type: "text", label: "Stipend", placeholder: "e.g., 5000/month", required: true },
+      { name: "internshipCertificatePdf", type: "document", label: "Internship Certificate PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    STARTUPS: [
+      { name: "startupName", type: "text", label: "Startup Name", required: true },
+      { name: "nature", type: "text", label: "Nature", required: true },
+      { name: "yearCommenced", type: "text", label: "Year Commenced", placeholder: "e.g., 2023", required: true },
+      { name: "certificate", type: "text", label: "Certificate", required: true },
+      { name: "registrationLetterPdf", type: "document", label: "Registration Letter PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    INNOVATIONS: [
+      { name: "innovationName", type: "text", label: "Innovation Name", required: true },
+      { name: "nature", type: "text", label: "Nature", required: true },
+      { name: "sanctionedAmount", type: "text", label: "Sanctioned Amount", required: true },
+      { name: "receivedAmount", type: "text", label: "Received Amount", required: true },
+      { name: "letterDate", type: "text", label: "Letter Date", placeholder: "YYYY-MM-DD", required: true },
+      { name: "commercializationLetterPdf", type: "document", label: "Commercialization Letter PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+    BUSINESS_EXAMS: [
+      { name: "examName", type: "text", label: "Exam Name", required: true },
+      { name: "type", type: "text", label: "Type", required: true },
+      { name: "activityName", type: "text", label: "Activity Name", required: true },
+      { name: "proofPDF", type: "document", label: "Proof PDF", required: true },
+      { name: "title", type: "text", label: "Achievement Title", required: true },
+      { name: "description", type: "text", label: "Achievement Description", placeholder: "Be careful, this will be visible publicly if accepted", required: true },
+    ],
+  };
+
+  // Function to parse AchievementData
+  const parseAchievementData = (data: Record<string, any> | string): Record<string, any> => {
+    if (!data) return {};
+    
+    // If data is already an object, return it
+    if (typeof data === 'object' && !Array.isArray(data)) {
+      return data;
+    }
+    
+    // If data is a string, try to parse it
+    if (typeof data === 'string') {
+      try {
+        const parsed = JSON.parse(data);
+        // Make sure the result is actually an object
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed;
+        } else {
+          console.error("Parsed data is not an object:", parsed);
+          return {};
+        }
+      } catch (error) {
+        console.error("Failed to parse AchievementData:", error);
+        return {};
+      }
+    }
+    
+    // If we get here, data is neither an object nor a valid JSON string
+    console.error("AchievementData is in an unexpected format:", data);
+    return {};
+  };
+
+  // Function to get field type
+  const getFieldType = (category: string, fieldName: string): string | undefined => {
+    const fields = achievementFormFields[category];
+    if (!fields) return undefined;
+    
+    const field = fields.find(field => field.name === fieldName);
+    return field?.type;
+  };
+
+  // Function to get field label
+  const getFieldLabel = (category: string, fieldName: string): string => {
+    const fields = achievementFormFields[category];
+    if (!fields) return fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1');
+    
+    const field = fields.find(field => field.name === fieldName);
+    return field?.label || fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1');
+  };
+
+  // Function to create document URL
+  const createDocumentURL = (documentData: any) => {
+    if (!documentData) return null;
+    try {
+      const { data, contentType } = documentData;
+      if (!data || !contentType) return null;
+      const blob = new Blob([Buffer.from(data, "base64")], { type: contentType });
+      return URL.createObjectURL(blob);
+    } catch (error) {
+      console.error("Failed to create document URL:", error);
+      return null;
+    }
+  };
 
   // Reset states when modal closes
   useEffect(() => {
@@ -356,7 +534,7 @@ export function StudentDetailsModal({
                     <div className="space-y-4 sm:space-y-6">
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h3 className="font-semibold mb-2">
-                          Achievement Details
+                          Achievement Overview
                         </h3>
                         <div className="space-y-2">
                           <p>
@@ -397,32 +575,76 @@ export function StudentDetailsModal({
                         </div>
                       </div>
 
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="font-semibold mb-2">
-                          Professor Information
-                        </h3>
-                        <div className="space-y-2">
-                          <p>
-                            <span className="text-gray-500">
-                              Professor Name:
-                            </span>{" "}
-                            {student.professorName}
-                          </p>
-                          <p>
-                            <span className="text-gray-500">
-                              Professor Email:
-                            </span>{" "}
-                            {student.professorEmail}
-                          </p>
+                      {/* Achievement Details Section - Dynamically Generated */}
+                      {student.AchievementData && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h3 className="font-semibold mb-2">Achievement Details</h3>
+                          <div className="space-y-3">
+                            {Object.entries(parseAchievementData(student.AchievementData)).map(([key, value]) => {
+                              const fieldType = getFieldType(student.achievementCategory, key);
+                              const fieldLabel = getFieldLabel(student.achievementCategory, key);
+                              
+                              // Don't display title and description as they're already shown in the form
+                              if (key === 'title' || key === 'description') return null;
+                              // console.log(key, (student as Record<string, any>)[key]);
+                              return (
+                                <div key={key} className="space-y-1">
+                                  <p className="text-gray-500 text-sm">{fieldLabel}:</p>
+                                  
+                                  {fieldType === "document" ? (
+                                    // For document type fields
+                                    (student as Record<string, any>)[key] ? (
+                                      <Button
+                                        variant="outline"
+                                        className="w-full bg-white hover:bg-blue-50 border-2 border-blue-200 text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center justify-center gap-2 py-3"
+                                        onClick={() => {
+                                          const url = createDocumentURL((student as Record<string, any>)[key]);
+                                          if (url) {
+                                            window.open(url, "_blank", "noopener,noreferrer");
+                                          }
+                                        }}
+                                      >
+                                        <svg
+                                          className="w-5 h-5"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                          />
+                                        </svg>
+                                        View {fieldLabel}
+                                      </Button>
+                                    ) : (
+                                      <p className="text-gray-500">No document available</p>
+                                    )
+                                  ) : fieldType === "option" ? (
+                                    // For option type fields
+                                    <p className="text-gray-800 font-medium bg-blue-50 px-3 py-1.5 rounded">
+                                      {String(value)}
+                                    </p>
+                                  ) : (
+                                    // For text type and other fields
+                                    <p className="text-gray-800">{String(value)}</p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
-                      <div className="bg-gray-50 p-4 rounded-lg">
+                      {/* <div className="bg-gray-50 p-4 rounded-lg">
                         <h3 className="font-semibold mb-2">Student Remarks</h3>
                         <p className="text-gray-700">{student.remarks}</p>
-                      </div>
+                      </div> */}
 
-                      <div className="bg-gray-50 p-4 rounded-lg">
+                      {/* <div className="bg-gray-50 p-4 rounded-lg">
                         <h3 className="font-semibold mb-2">
                           Certificate/Proof
                         </h3>
@@ -461,7 +683,7 @@ export function StudentDetailsModal({
                             No certificate available
                           </p>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </>

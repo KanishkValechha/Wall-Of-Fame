@@ -154,22 +154,51 @@ export default function AchievementFormPage() {
 
   // Store form data between steps
   const [formData, setFormData] = useState<Partial<CombinedFormData>>({});
-  
-  const handleSubmit = async (data:AchievementFormData) => {  
+  const handleSubmit = async (achievementData: AchievementFormData) => {  
     const formDataToSend = new FormData();
-    const structuredData = {
-      ...formData,
-      AchievementData: JSON.stringify(data), // Stringify AchievementData
-    };
-  
-    Object.entries(structuredData).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formDataToSend.append(key, value);
-      } else {
-        formDataToSend.append(key, String(value));
+    
+    // Add basic information fields to the form data
+    if (formData.fullName) formDataToSend.append("fullName", formData.fullName);
+    if (formData.registrationNumber) formDataToSend.append("registrationNumber", formData.registrationNumber);
+    if (formData.mobileNumber) formDataToSend.append("mobileNumber", formData.mobileNumber);
+    if (formData.studentMail) formDataToSend.append("studentMail", formData.studentMail);
+    if (formData.achievementCategory) formDataToSend.append("achievementCategory", formData.achievementCategory);
+    
+    // Add user image file if it exists
+    if (formData.userImage instanceof File) {
+      formDataToSend.append("userImage", formData.userImage);
+    }
+    
+    // Handle achievement data - ensure it doesn't contain basic info fields
+    const achievementDataClean = { ...achievementData };
+    
+    // Make sure achievement data doesn't contain any basic info
+    const basicInfoFields = ["fullName", "registrationNumber", "mobileNumber", "studentMail", "achievementCategory", "userImage"];
+    basicInfoFields.forEach(field => {
+      if (field in achievementDataClean) {
+        delete achievementDataClean[field];
       }
     });
-  
+    
+    // Create a JSON-safe version of the achievement data
+    const achievementDataJSON = { ...achievementDataClean };
+    
+    // Append all files in achievement data directly to FormData and update JSON representation
+    Object.keys(achievementDataClean).forEach(key => {
+      if (achievementDataClean[key] instanceof File) {
+        const file = achievementDataClean[key] as File;
+        // Append file directly to FormData with its field name
+        formDataToSend.append(key, file);
+        
+        // Store only the file name in JSON representation (not the File object)
+        achievementDataJSON[key] = key;
+      }
+    });
+    
+    console.log(achievementDataJSON);
+    // Append the achievement data as JSON
+    formDataToSend.append("AchievementData", JSON.stringify(achievementDataJSON));
+    
     try {
       const response = await axios.post("/api/submitAchievement", formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -177,15 +206,22 @@ export default function AchievementFormPage() {
   
       if (response.status === 200) {
         setIsSubmitting(false);
+        // For display purposes, combine both sets of data
+        setSubmissionData({
+          ...formData,
+          ...achievementDataClean
+        } as CombinedFormData);
         console.log("Submission successful!");
       } else {
         console.error("Submission failed. Please try again.");
       }
     } catch (error: any) {
       console.error("Error submitting form:", error);
+      setIsSubmitting(false);
     }
   };
   
+
   // Handle the first form submission
   const handleBasicFormSubmit = (data: Record<string, any>) => {
     setFormData(prev => ({ ...prev, ...data }));

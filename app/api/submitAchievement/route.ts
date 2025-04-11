@@ -14,7 +14,7 @@ interface FormField {
     placeholder?: string;
     required?: boolean;
     options?: string[];
-  }
+}
   
 const uri = process.env.mongoURL as string;
 const client = new MongoClient(uri);
@@ -126,14 +126,14 @@ const achievementFormFields: Record<string, FormField[]> = {
   };
 
 // Define form field configurations
-const basicFormFields = [
-    { name: "fullName", required: true },
-    { name: "registrationNumber", required: true },
-    { name: "mobileNumber", required: true },
-    { name: "studentMail", required: true },
-    { name: "userImage", required: true },
-    { name: "achievementCategory", required: true },
-    { name: "AchievementData", required: true },
+const basicFormFields: FormField[] = [
+    { name: "fullName", required: true ,type: "text"},
+    { name: "registrationNumber", required: true,type: "text" },
+    { name: "mobileNumber", required: true,type: "text" },
+    { name: "studentMail", required: true ,type: "text"},
+    { name: "userImage", required: true, type: "document" },
+    { name: "achievementCategory", required: true ,type: "text"},
+    { name: "AchievementData", required: true ,type: "text"},
 ];
 
 export async function POST(req: NextRequest) {
@@ -192,21 +192,37 @@ export async function POST(req: NextRequest) {
                     contentType: value.type
                 };
             } else if (field.name in AchievementDATA) {
-                achievement[field.name] = AchievementDATA[field.name];
+                // Check if the value in AchievementDATA refers to a file field in formData
+                const achievementValue = AchievementDATA[field.name];
+                if (field.type === "document" && typeof achievementValue === "string") {
+                    // Check if this string is referring to a file in formData
+                    const fileValue = formData.get(achievementValue);
+                    if (fileValue instanceof Blob) {
+                        const arrayBuffer = await fileValue.arrayBuffer();
+                        achievement[field.name] = {
+                            data: new Binary(new Uint8Array(arrayBuffer)),
+                            contentType: fileValue.type
+                        };
+                    } else {
+                        achievement[field.name] = achievementValue;
+                    }
+                } else {
+                    achievement[field.name] = achievementValue;
+                }
             } else {
                 achievement[field.name] = value;
             }
         }
 
         // Validate mobile number
+        const mobileNumber = achievement.mobileNumber as string;
         const mobileNumberPattern = /^[0-9]{10}$/;
-        if (!mobileNumberPattern.test(achievement.mobileNumber)) {
+        if (!mobileNumberPattern.test(mobileNumber)) {
             return NextResponse.json(
                 { error: 'Invalid mobile number. It must be a valid 10-digit phone number.' },
                 { status: 400 }
             );
         }
-
         // Connect to MongoDB
         await client.connect();
         const db = client.db('Wall-Of-Fame');
@@ -251,11 +267,20 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error('Error submitting achievement:', error);
+    
+        if (error.name === 'MongoServerError' && error.code === 121) {
+            console.error('Validation error details:', error.errInfo?.details);
+            return NextResponse.json(
+                { error: 'Validation failed', details: error.errInfo?.details },
+                { status: 400 }
+            );
+        }
+    
         return NextResponse.json(
-            { error: 'Failed to submit achievement' },
+            { error: `Database error: ${error.message}` },
             { status: 500 }
         );
-    } finally {
+        } finally {
         await client.close();
     }
 }
