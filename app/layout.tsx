@@ -1,22 +1,17 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import "./globals.css";
+import { Inter } from "next/font/google";
+import ClientLayout from "@/app/components/ClientLayout"; 
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: 'Wall of Fame',
-  description: '',
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <html lang="en">
+            <body className={inter.className}>
+                <ClientLayout> {/* ✅ Wrap everything in ClientLayout */}
+                    {children}
+                </ClientLayout>
+            </body>
+        </html>
+    );
 }
