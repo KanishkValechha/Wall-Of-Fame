@@ -5,6 +5,12 @@ import { Achievement } from "@/app/types/achievements";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { achievementFormFields } from "../types/achievementFields";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+
 
 interface AchievementModalProps {
   achievement: Achievement | null;
@@ -17,7 +23,7 @@ export default function AchievementModal({
   isOpen,
   onClose,
 }: AchievementModalProps) {
-  // console.log(achievement);
+  console.log(achievement);
   const [processedAchievement, setProcessedAchievement] =
     useState<Achievement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,6 +34,87 @@ export default function AchievementModal({
     const { data, contentType } = certificateData;
     const blob = new Blob([Buffer.from(data, "base64")], { type: contentType });
     return URL.createObjectURL(blob);
+  };
+  // Function to render dynamic fields based on achievement category
+  const renderCategoryFields = () => {
+    if (!achievement) return null;
+    const category = achievement.achievementCategory;
+    if (!category || !achievementFormFields[category]) return null;
+    
+    // Skip title and description fields as they're already in the main form
+    const fields = achievementFormFields[category].filter(
+      field => field.name !== "title" && field.name !== "description"
+    );
+    
+    if (fields.length === 0) return null;
+    
+    return (
+      <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+        <div className="col-span-2">
+          <Label className="font-medium text-sm text-gray-500">
+            Category-specific Information
+          </Label>
+        </div>
+        
+        {fields.map((field) => {
+          if (field.type === "document") {
+            // For document fields, just show a read-only display of the filename
+            return (
+              <div key={field.name} className="col-span-2">
+                <Label htmlFor={field.name}>{field.label}</Label>
+                <div className="text-sm text-gray-500 mt-1">
+                  {achievement[field.name as keyof Achievement] ? 
+                    "Document uploaded" : "No document available"}
+                </div>
+              </div>
+            );
+          } else if (field.type === "option" && field.options) {
+            return (
+              <div key={field.name} className="col-span-1">
+                <Label htmlFor={field.name}>{field.label}</Label>
+                <Select
+                  value={String(achievement[field.name as keyof Achievement] || "")}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={field.placeholder || `Select ${field.label}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {field.options.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            );
+          } else {
+            // For text fields
+            return (
+              <div key={field.name} className={field.name === "description" ? "col-span-2" : "col-span-1"}>
+                <Label htmlFor={field.name}>{field.label}</Label>
+                {field.name === "description" ? (
+                  <Textarea
+                    id={field.name}
+                    name={field.name}
+                    value={String(achievement[field.name as keyof Achievement] || "")}
+                    placeholder={field.placeholder}
+                    className="min-h-[60px]"
+                  />
+                ) : (
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={String(achievement[field.name as keyof Achievement] || "")}
+                    placeholder={field.placeholder}
+                  />
+                )}
+              </div>
+            );
+          }
+        })}
+      </div>
+    );
   };
 
   // Handle image and certificate processing - same approach as StudentDetailsModal
@@ -89,7 +176,63 @@ export default function AchievementModal({
       document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
-
+  const parseAchievementData = (data: Record<string, any> | string): Record<string, any> => {
+    if (!data) return {};
+    
+    // If data is already an object, return it
+    if (typeof data === 'object' && !Array.isArray(data)) {
+      return data;
+    }
+    
+    // If data is a string, try to parse it
+    if (typeof data === 'string') {
+      try {
+        const parsed = JSON.parse(data);
+        // Make sure the result is actually an object
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed;
+        } else {
+          console.error("Parsed data is not an object:", parsed);
+          return {};
+        }
+      } catch (error) {
+        console.error("Failed to parse AchievementData:", error);
+        return {};
+      }
+    }
+    
+    // If we get here, data is neither an object nor a valid JSON string
+    console.error("AchievementData is in an unexpected format:", data);
+    return {};
+  };
+  const getFieldType = (category: string, fieldName: string): string => {
+    const field = achievementFormFields[category]?.find(f => f.name === fieldName);
+    return field ? field.type : "text"; // Default to text if not found
+  };
+    // Function to get field label
+    const getFieldLabel = (category: string, fieldName: string): string => {
+      const fields = achievementFormFields[category];
+      if (!fields) return fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1');
+      
+      const field = fields.find(field => field.name === fieldName);
+      return field?.label || fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1');
+    };
+  
+    // Function to create document URL
+    const createDocumentURL = (documentData: any) => {
+      if (!documentData) return null;
+      try {
+        const { data, contentType } = documentData;
+        if (!data || !contentType) return null;
+        const blob = new Blob([Buffer.from(data, "base64")], { type: contentType });
+        return URL.createObjectURL(blob);
+      } catch (error) {
+        console.error("Failed to create document URL:", error);
+        return null;
+      }
+    };
+  
+  
   if (!achievement) return null;
 
   return (
@@ -186,7 +329,7 @@ export default function AchievementModal({
                         </p>
                       </motion.div>
 
-                      {/* Certificate section - with identical styling from StudentDetailsModal */}
+                      {/* //Certificate section - with identical styling from StudentDetailsModal
                       <motion.div
                         initial={{ y: 10, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
@@ -231,7 +374,72 @@ export default function AchievementModal({
                             No certificate available
                           </p>
                         )}
-                      </motion.div>
+                      </motion.div> */}
+                      {/* {renderCategoryFields()} */}
+                      {achievement.AchievementData && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h3 className="font-semibold mb-2">Achievement Details</h3>
+                          <div className="space-y-3">
+                            {Object.entries(parseAchievementData(achievement.AchievementData)).map(([key, value]) => {
+                              const fieldType = getFieldType(achievement.achievementCategory, key);
+                              const fieldLabel = getFieldLabel(achievement.achievementCategory, key);
+                              
+                              // Don't display title and description as they're already shown in the form
+                              if (key === 'title' || key === 'description') return null;
+                              // console.log(key, (student as Record<string, any>)[key]);
+                              return (
+                                <div key={key} className="space-y-1">
+                                  <p className="text-gray-500 text-sm">{fieldLabel}:</p>
+                                  
+                                  {fieldType === "document" ? (
+                                    // For document type fields
+                                    (achievement as Record<string, any>)[key] ? (
+                                      <Button
+                                        variant="outline"
+                                        className="w-full bg-white hover:bg-blue-50 border-2 border-blue-200 text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center justify-center gap-2 py-3"
+                                        onClick={() => {
+                                          const url = createDocumentURL((achievement as Record<string, any>)[key]);
+                                          if (url) {
+                                            window.open(url, "_blank", "noopener,noreferrer");
+                                          }
+                                        }}
+                                      >
+                                        <svg
+                                          className="w-5 h-5"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                          />
+                                        </svg>
+                                        View {fieldLabel}
+                                      </Button>
+                                    ) : (
+                                      <p className="text-gray-500">No document available</p>
+                                    )
+                                  ) : fieldType === "option" ? (
+                                    // For option type fields
+                                    <p className="text-gray-800 font-medium bg-blue-50 px-3 py-1.5 rounded">
+                                      {String(value)}
+                                    </p>
+                                  ) : (
+                                    // For text type and other fields
+                                    <p className="text-gray-800">{String(value)}</p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+
                     </div>
                   </motion.div>
                 </div>
