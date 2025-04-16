@@ -23,7 +23,6 @@ import {
 import TeamModal from "./TeamModal";
 import AchievementModal from "./AchievementModal";
 
-
 export default function InteractiveHomeClient({
   isReturning = false,
 }: InteractiveHomeClientProps) {
