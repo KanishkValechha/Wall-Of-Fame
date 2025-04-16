@@ -129,6 +129,8 @@ export default function DynamicForm({
               placeholder={placeholder}
               value={formData[name] || ""}
               onChange={(e) => handleChange(name, e.target.value)}
+              //BLOCKED
+              disabled={field.blocked?field.blocked:false}
               className={`block w-full border rounded px-3 py-2 ${
                 hasError ? "border-red-500" : "border-gray-300"
               }`}

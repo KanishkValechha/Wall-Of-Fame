@@ -38,3 +38,17 @@ export async function POST(req: NextRequest) {
             }
             if (jwtError instanceof errors.JWTClaimValidationFailed) {
                 return NextResponse.json(
+                    { error: 'Token claim validation failed' },
+                    { status: 400 }
+                );
+            }
+            throw jwtError;
+        }
+    } catch (error) {
+        console.error('Token decryption error:', error);
+        return NextResponse.json(
+            { error: 'Internal server error during token processing' },
+            { status: 500 }
+        );
+    }
+}

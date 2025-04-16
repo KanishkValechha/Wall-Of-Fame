@@ -5,6 +5,7 @@ export interface FormField {
     placeholder?: string;
     required?: boolean;
     options?: string[];
+    blocked?: boolean;
   }
   
 // Form field configurations for each achievement type
