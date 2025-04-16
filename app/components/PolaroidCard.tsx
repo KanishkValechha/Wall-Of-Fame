@@ -19,26 +19,18 @@ function PolaroidCardComponent({ achievement, onClick }: PolaroidCardProps) {
       }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative rounded-xl cursor-pointer"
+      className="group relative cursor-pointer bg-white p-3 pb-8"
       onClick={onClick}
       style={{
-        width: "250px",  // Set explicit width
-        height: "350px", // Set explicit height
-        aspectRatio: "3/4",
-        background: "white",
-        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.06)",
+        width: "200px", // Smaller width
+        height: "280px", // Adjusted height for proportion
+        boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* Image container with overlay gradient */}
+      {/* Image container */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/70 z-10"
-        layoutId={`overlay-${achievement._id}`}
-      />
-
-      <motion.div
-        className="absolute inset-0"
+        className="relative w-full h-[200px] bg-gray-100"
         layoutId={`image-container-${achievement._id}`}
-        style={{ width: "100%", height: "100%" }} // Ensure the image container has dimensions
       >
         {achievement.imageUrl && (
           <Image
@@ -46,34 +38,31 @@ function PolaroidCardComponent({ achievement, onClick }: PolaroidCardProps) {
             alt={achievement.fullName}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover"
             priority={true}
           />
         )}
       </motion.div>
 
-      {/* Content overlay at bottom */}
+      {/* Polaroid strip with text */}
       <motion.div
-        className="absolute bottom-0 left-0 right-0 p-5 z-20 text-white"
+        className="absolute bottom-0 left-0 right-0 p-2 bg-white text-center"
         layoutId={`content-${achievement._id}`}
       >
         <motion.h3
-          className="font-medium text-lg md:text-xl mb-1"
+          className="font-medium text-sm text-gray-800 truncate"
           layoutId={`name-${achievement._id}`}
         >
           {achievement.fullName}
         </motion.h3>
 
         <motion.p
-          className="text-xs md:text-sm text-white/90 line-clamp-2 font-light"
+          className="text-xs text-gray-600 line-clamp-1 mt-0.5"
           layoutId={`title-${achievement._id}`}
         >
           {achievement.title}
         </motion.p>
       </motion.div>
-
-      {/* Subtle shine effect on hover */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-5" />
     </motion.div>
   );
 }

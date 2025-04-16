@@ -1,8 +1,9 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState,useLayoutEffect } from 'react';
+import { Suspense } from 'react';
 
-const UnauthPage = () => {
+const UnauthContent = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [message, setMessage] = useState('');
@@ -36,5 +37,13 @@ const UnauthPage = () => {
         </div>
     );
 };
+ 
+const UnauthPage=()=>{
+    return(
+        <Suspense fallback={<div style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</div>}>
+            <UnauthContent></UnauthContent>
+        </Suspense>
+    )
+}
 
 export default UnauthPage;
