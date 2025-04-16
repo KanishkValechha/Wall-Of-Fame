@@ -215,5 +215,3 @@ export default function AchievementFormPage() {
     </div>
   );
 }
-
-export { achievementFormFields };
