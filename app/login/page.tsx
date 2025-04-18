@@ -6,8 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const ProfessorLogin = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
+
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,11 +51,17 @@ const ProfessorLogin = () => {
         body: JSON.stringify({ email, otp }),
       });
       const data = await res.json();
-      //{success: false, message: "Invalid or expired OTP"}
-      if (res.ok) {
-        setStatus({ type: data.success?'success':'error', message: data.message });
-      }
-      else{
+      if (res.ok && data.success) {
+        setStatus({ type: 'success', message: 'Login successful' });
+        if (callbackUrl && data.token) {
+          const encodedToken = encodeURIComponent(data.token);
+          const redirectUrl = `${callbackUrl}?token=${encodedToken}`;
+          console.log('Redirecting to:', redirectUrl);
+          router.push(redirectUrl);
+        } else {
+          router.push('/');
+        }
+      } else {
         setStatus({ type: 'error', message: data.message });
       }
     } catch (error) {
@@ -62,7 +73,7 @@ const ProfessorLogin = () => {
   return (
     <Card className="max-w-md mx-auto mt-10 p-4 shadow-md">
       <CardHeader>
-        <CardTitle>Professor Login</CardTitle>
+        <CardTitle>Login</CardTitle>
       </CardHeader>
       <CardContent>
         {status && (

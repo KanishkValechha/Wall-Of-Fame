@@ -14,9 +14,9 @@ export async function middleware(req: NextRequest) {
   }
 
   const redirectToUnauthorized = (msg: string) => {
-    const url = new URL("/unauth", req.url);
-    url.searchParams.set("msg", msg);
-    url.searchParams.set("redirect", new URL('/unauthorized',req.url).toString());
+    const url = new URL("/unauthorized", req.url);
+    url.searchParams.set("message", msg);
+    url.searchParams.set("callbackUrl", req.nextUrl.pathname);
     console.log(`Redirecting to /unauthorized with message: ${msg}`);
     return NextResponse.redirect(url);
   };
@@ -36,7 +36,7 @@ export async function middleware(req: NextRequest) {
         return redirectToUnauthorized("Invalid email format in token.");
       }
       const domain = email.split("@")[1];
-      console.log(`Token Verified Successfully! Logged-in Email: ${email}`);
+      console.log(`Token Verified Successfully: Logged-in Email: ${email}`);
     } catch (error) {
       console.log("Invalid Token! Redirecting to /unauthorized.", error);
       return redirectToUnauthorized("Invalid token.");

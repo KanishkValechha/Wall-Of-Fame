@@ -19,7 +19,7 @@ export default function DynamicForm({
 }: DynamicFormProps) {
   const [formData, setFormData] = useState<Record<string, any>>(initialValues); // Initialize with initialValues
   const [errors, setErrors] = useState<Record<string, string>>({});
-  console.log("Form Data:", formData);
+  // console.log("Form Data:", formData);
   useEffect(() => {
     setFormData(initialValues); // Update formData when initialValues change
   }, [initialValues]);
