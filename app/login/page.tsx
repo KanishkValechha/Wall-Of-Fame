@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-const ProfessorLogin = () => {
+// Client component that safely uses useSearchParams
+const LoginForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
@@ -120,6 +121,31 @@ const ProfessorLogin = () => {
         </Button>
       </CardContent>
     </Card>
+  );
+};
+
+// Loading fallback component
+const LoginFormFallback = () => {
+  return (
+    <Card className="max-w-md mx-auto mt-10 p-4 shadow-md">
+      <CardHeader>
+        <CardTitle>Login</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="animate-spin h-8 w-8" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Main page component with Suspense boundary
+const ProfessorLogin = () => {
+  return (
+    <Suspense fallback={<LoginFormFallback />}>
+      <LoginForm />
+    </Suspense>
   );
 };
 
