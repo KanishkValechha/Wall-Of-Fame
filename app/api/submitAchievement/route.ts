@@ -3,13 +3,10 @@ import { MongoClient, Binary } from 'mongodb';
 import { EmailService } from '@/app/utils/EmailServices';
 import { Blob } from 'buffer';
 import { FormField,achievementFormFields } from '@/app/types/achievementFields';
+import { MONGO_URL, NEXT_PUBLIC_SITE_URL } from '@/app/secrets';
 
 // MongoDB connection
-if (!process.env.mongoURL) {
-    throw new Error("Missing MONGO_URL in environment variables");
-}
- 
-const uri = process.env.mongoURL as string;
+const uri = MONGO_URL as string;
 const client = new MongoClient(uri);
 
 // Define form field configurations
@@ -142,7 +139,7 @@ export async function POST(req: NextRequest) {
             <p><strong>Phone Number:</strong> +91 ${achievement.mobileNumber}</p>
             <p><strong>Achievement Type:</strong> ${achievementCategory}</p>
             <p><strong>Submission Date:</strong> ${achievement.submissionDate}</p>
-            <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/dashboard">Click here</a> to approve or reject the achievement.</p>
+            <p><a href="${NEXT_PUBLIC_SITE_URL}/dashboard">Click here</a> to approve or reject the achievement.</p>
             <p>Thank you!</p>`
         );
 

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MongoClient, Binary, ObjectId } from "mongodb";
+import { MONGO_URL } from "@/app/secrets";
 
-if (!process.env.mongoURL) {
-  throw new Error("Missing MONGO_URL in environment variables");
-}
-const uri = process.env.mongoURL as string;
+const uri = MONGO_URL as string;
 const client = new MongoClient(uri);
 
 export async function GET(req: NextRequest) {

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify, errors } from "jose";
+import { SECRET_KEY as ENV_SECRET_KEY } from '@/app/secrets';
 
-const SECRET_KEY = new TextEncoder().encode(process.env.SECRET_KEY || "your-secret-key");
+const SECRET_KEY = new TextEncoder().encode(ENV_SECRET_KEY);
 
 if (!SECRET_KEY) {
     throw new Error('SECRET_KEY is not defined in the environment variables');
