@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { SECRET_KEY as ENV_SECRET_KEY } from "./app/secrets";
 
-const SECRET_KEY = new TextEncoder().encode(process.env.SECRET_KEY || "your-secret-key");
+const SECRET_KEY = new TextEncoder().encode(ENV_SECRET_KEY);
 
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
@@ -14,31 +15,44 @@ export async function middleware(req: NextRequest) {
   }
 
   const redirectToUnauthorized = (msg: string) => {
-    const url = new URL("/unauth", req.url);
-    url.searchParams.set("msg", msg);
-    url.searchParams.set("redirect", new URL('/unauthorized',req.url).toString());
+    const url = new URL("/unauthorized", req.url);
+    url.searchParams.set("message", msg);
+    url.searchParams.set("callbackUrl", req.nextUrl.pathname);
     console.log(`Redirecting to /unauthorized with message: ${msg}`);
     return NextResponse.redirect(url);
   };
-
-  if (pathname === "/submit" || pathname === "/dashboard") {
+  
+  var email;
+  if (['/submit', '/dashboard', '/admin'].includes(pathname)) {
     if (!token) {
       console.log("No token found. Redirecting to /unauthorized.");
       return redirectToUnauthorized("No token found.");
     }
-
     try {
       token = decodeURIComponent(token); // Decode in case it's URL-encoded
       const { payload } = await jwtVerify(token, SECRET_KEY);
-      let email = String(payload.email || "").trim();
+      email = String(payload.email || "").trim();
+      if (!email || !email.includes("@")) {
+        console.log("Invalid email format in token. Redirecting to /unauthorized.");
+        return redirectToUnauthorized("Invalid email format in token.");
+      }
+      const domain = email.split("@")[1];
+      console.log(`Token Verified Successfully: Logged-in Email: ${email}`);
+    } catch (error) {
+      console.log("Invalid Token! Redirecting to /unauthorized.", error);
+      return redirectToUnauthorized("Invalid token.");
+    }
+  }
+  if (pathname === "/submit" || pathname === "/dashboard") {
+    try {
 
-      if (!email.includes("@")) {
+      if (!email || !email.includes("@")) {
         console.log("Invalid email format in token. Redirecting to /unauthorized.");
         return redirectToUnauthorized("Invalid email format in token.");
       }
 
       const domain = email.split("@")[1];
-
+      console.log(`Extracted mail: ${email}`);
       if (pathname === "/dashboard" && domain !== "jaipur.manipal.edu") {
         console.log("Unauthorized access attempt to dashboard. Redirecting.");
         return redirectToUnauthorized("Unauthorized access to dashboard.");
@@ -60,31 +74,37 @@ export async function middleware(req: NextRequest) {
   }
 
   if (pathname === "/admin") {
-    if (!token) {
-      console.log("No token found. Redirecting to /unauthorized.");
-      return redirectToUnauthorized("No token found.");
-    }
-
     try {
-      token = decodeURIComponent(token); // Decode in case it's URL-encoded
-      const { payload } = await jwtVerify(token, SECRET_KEY);
-      let email = String(payload.email || "").trim();
+      const checkAdminStatus = async (email: string) => {
+        try {
+          const baseUrl = new URL(req.url).origin;
+          const response = await fetch(`${baseUrl}/api/auth/check-admin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+          });
+          const data = await response.json();
+          return data.isAdmin;
+        } catch (error) {
+          console.error('Failed to check admin status:', error);
+          return false;
+        }
+      };
 
-      if (!email.includes("@")) {
+      if (!email || !email.includes("@")) {
         console.log("Invalid email format in token. Redirecting to /unauthorized.");
         return redirectToUnauthorized("Invalid email format in token.");
       }
-
       const user = email.split("@")[0];
       const domain = email.split("@")[1];
-
+      
       if (domain !== "jaipur.manipal.edu" && domain !== "muj.manipal.edu") {
         console.log("Unauthorized access attempt to admin page. Redirecting.");
         return redirectToUnauthorized("Unauthorized access to admin page.");
       }
-
-      const allowedUsers = ["vedic.229302083", "kanishk.229302193"];
-      if (!allowedUsers.includes(user)) {
+      
+      const isAdmin = await checkAdminStatus(email);
+      if (!isAdmin) {
         console.log("Unauthorized access attempt to admin page. Redirecting.");
         return redirectToUnauthorized("User not authorized for admin access.");
       }

@@ -19,7 +19,7 @@ export default function DynamicForm({
 }: DynamicFormProps) {
   const [formData, setFormData] = useState<Record<string, any>>(initialValues); // Initialize with initialValues
   const [errors, setErrors] = useState<Record<string, string>>({});
-
+  // console.log("Form Data:", formData);
   useEffect(() => {
     setFormData(initialValues); // Update formData when initialValues change
   }, [initialValues]);
@@ -129,6 +129,8 @@ export default function DynamicForm({
               placeholder={placeholder}
               value={formData[name] || ""}
               onChange={(e) => handleChange(name, e.target.value)}
+              //BLOCKED
+              disabled={field.blocked?field.blocked:false}
               className={`block w-full border rounded px-3 py-2 ${
                 hasError ? "border-red-500" : "border-gray-300"
               }`}

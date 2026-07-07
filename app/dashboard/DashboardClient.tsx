@@ -20,10 +20,33 @@ import { Achievement } from "@/app/types/achievements";
 import { DateRange } from "react-day-picker";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useSearchParams } from "next/navigation";
+import axios from "axios";
 
 export default function DashboardClient() {
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email");
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  useEffect(() => {
+    const verifyToken = async () => {
+      try {
+        // extract token from the url
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+        if (!token) {
+          throw new Error('No token found');
+        }
+
+        const response = await axios.post('/api/auth/decrypt-test', { token });
+        setVerifiedEmail(response.data.payload.email);
+      } catch (error) {
+        console.error('Token verification failed:', error);
+        // Redirect to login or show error
+      } finally {
+      }
+    };
+
+    verifyToken();
+  }, []);
+
 
   const fetchAchievements = async (email: string|null) => {
     try {
@@ -157,7 +180,7 @@ export default function DashboardClient() {
         //   throw new Error("Email query parameter is missing.");
         // }
 
-        const achievements = await fetchAchievements(email);
+        const achievements = await fetchAchievements(verifiedEmail);
         setSubmissions(achievements);
       } catch (error: any) {
         setError(error.message || "An error occurred while loading achievements.");
@@ -167,7 +190,7 @@ export default function DashboardClient() {
     };
 
     loadAchievements();
-  }, [email]);
+  }, [verifiedEmail]);
 
   const handleStatusChange = async (
     submissionId: string,

@@ -83,6 +83,18 @@ export default function EditAchievementModal({
     onSave(changedFields as Achievement);
     // Don't call onClose() here as it will be handled by the parent
   };
+  const createDocumentURL = (documentData: any) => {
+    if (!documentData) return null;
+    try {
+      const { data, contentType } = documentData;
+      if (!data || !contentType) return null;
+      const blob = new Blob([Buffer.from(data, "base64")], { type: contentType });
+      return URL.createObjectURL(blob);
+    } catch (error) {
+      console.error("Failed to create document URL:", error);
+      return null;
+    }
+  };
 
   // Function to render dynamic fields based on achievement category
   const renderCategoryFields = () => {
@@ -108,12 +120,38 @@ export default function EditAchievementModal({
           if (field.type === "document") {
             // For document fields, just show a read-only display of the filename
             return (
-              <div key={field.name} className="col-span-2">
-                <Label htmlFor={field.name}>{field.label}</Label>
-                <div className="text-sm text-gray-500 mt-1">
-                  {editedAchievement[field.name as keyof Achievement] ? 
-                    "Document uploaded" : "No document available"}
-                </div>
+              <div key={field.name}>
+                <p className="text-gray-500 text-sm">{field.label}:</p>
+                {(editedAchievement as Record<string, any>)[field.name] ? (
+                  <Button
+                    variant="outline"
+                    className="w-full bg-white hover:bg-blue-50 border-2 border-blue-200 text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center justify-center gap-2 py-3"
+                    onClick={() => {
+                      const url = createDocumentURL((editedAchievement as Record<string, any>)[field.name]);
+                      if (url) {
+                        window.open(url, "_blank", "noopener,noreferrer");
+                      }
+                    }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    View {field.label}
+                  </Button>
+                ) : (
+                  <p className="text-gray-500">No document available</p>
+                )}
               </div>
             );
           } else if (field.type === "option" && field.options) {

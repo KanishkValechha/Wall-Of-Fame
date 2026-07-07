@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DynamicForm from "./form";
 import axios from "axios";
 import { achievementFormFields,FormField } from "../types/achievementFields";
@@ -24,13 +24,54 @@ export default function AchievementFormPage() {
   const [submissionData, setSubmissionData] = useState<CombinedFormData | null>(null);
   const [activeForm, setActiveForm] = useState<string>("basic");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [formData, setFormData] = useState<Partial<CombinedFormData>>({});
+
+  useEffect(() => {
+    const verifyToken = async () => {
+      try {
+        // extract token from the url
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+        if (!token) {
+          throw new Error('No token found');
+        }
+
+        const response = await axios.post('/api/auth/decrypt-test', { token });
+        setVerifiedEmail(response.data.payload.email);
+      } catch (error) {
+        console.error('Token verification failed:', error);
+        // Redirect to login or show error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    verifyToken();
+  }, []);
+  useEffect(()=>{setFormData(prev => ({ ...prev, studentMail: verifiedEmail }))},[verifiedEmail]); // Include verified email in form data
+
+  if (isLoading) {
+    return <div className="p-6 max-w-4xl mx-auto">
+      <div className="text-center">Verifying user...</div>
+    </div>;
+  }
+
+  if (!verifiedEmail) {
+    return <div className="p-6 max-w-4xl mx-auto">
+      <div className="text-center text-red-600">Email verification failed. Please try again.</div>
+    </div>;
+  } else{
+  }
 
   // Form fields for the basic information
   const basicFormFields: FormField[] = [
     { name: "fullName", type: "text", label: "Full Name", required: true },
     { name: "registrationNumber", type: "text", label: "Registration Number", required: true },
     { name: "mobileNumber", type: "text", label: "Mobile Number", placeholder: "e.g., 9876543210", required: true },
-    { name: "studentMail", type: "text", label: "Email Address", placeholder: "e.g., example@outlook.com", required: true },
+    { name: "studentMail", type: "text", label: "Email Address", placeholder: verifiedEmail, required: true, blocked: true },
     { name: "userImage", type: "document", label: "User Image", required: true },
     { 
       name: "achievementCategory", 
@@ -46,7 +87,6 @@ export default function AchievementFormPage() {
   ];
 
   // Store form data between steps
-  const [formData, setFormData] = useState<Partial<CombinedFormData>>({});
   const handleSubmit = async (achievementData: AchievementFormData) => {  
     const formDataToSend = new FormData();
     
@@ -117,7 +157,11 @@ export default function AchievementFormPage() {
 
   // Handle the first form submission
   const handleBasicFormSubmit = (data: Record<string, any>) => {
-    setFormData(prev => ({ ...prev, ...data }));
+    setFormData(prev => ({ 
+      ...prev, 
+      ...data,
+      // studentMail: verifiedEmail // Include verified email in form data
+    }));
     setActiveForm(data.achievementCategory);
   };
   
