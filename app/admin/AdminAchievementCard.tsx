@@ -69,7 +69,7 @@ function AdminAchievementCard({
     >
 <div
   className={cn(
-    "absolute top-3 left-3 z-40 p-1 rounded-md backdrop-blur-sm",
+    "absolute top-3 left-3 z-40 p-1 rounded-md backdrop-blur-xs",
     approvalStatus === "approved"
       ? "bg-emerald-500"
       : approvalStatus === "pending"
@@ -97,7 +97,7 @@ function AdminAchievementCard({
 
       {/* Image with gradient overlay */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/80 z-10" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/10 via-transparent to-black/80 z-10" />
         {achievement.imageUrl && (
           <Image
             src={achievement.imageUrl}
@@ -129,7 +129,7 @@ function AdminAchievementCard({
           <Button
             variant="secondary"
             size="sm"
-            className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white h-8"
+            className="bg-white/20 backdrop-blur-xs hover:bg-white/30 text-white h-8"
             onClick={(e) => {
               e.stopPropagation();
               onClick();
@@ -147,7 +147,7 @@ function AdminAchievementCard({
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      "h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30",
+                      "h-8 w-8 rounded-full bg-white/20 backdrop-blur-xs text-white hover:bg-white/30",
                       achievement.overAllTop10 &&
                         "bg-amber-500/70 hover:bg-amber-500"
                     )}
@@ -176,7 +176,7 @@ function AdminAchievementCard({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
+                    className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-xs text-white hover:bg-white/30"
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleArchive();

@@ -16,7 +16,7 @@ export default function WelcomePage({ isLoading = true }: WelcomePageProps) {
         delay: 0.2, 
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="fixed inset-0 bg-white z-[60] flex flex-col items-center justify-center"
+      className="fixed inset-0 bg-white z-60 flex flex-col items-center justify-center"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -38,7 +38,7 @@ export default function WelcomePage({ isLoading = true }: WelcomePageProps) {
           transition={{ duration: 0.8, delay: 0.5 }}
           className="space-y-2"
         >
-          <h2 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold bg-gradient-to-r from-black via-neutral-800 to-black bg-clip-text text-transparent">
+          <h2 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold bg-linear-to-r from-black via-neutral-800 to-black bg-clip-text text-transparent">
             MUJ CSE DEPT
           </h2>
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-display italic text-neutral-700">

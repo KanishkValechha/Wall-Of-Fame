@@ -11,9 +11,9 @@ export default function FloatingTeamButton({
   return (
     <motion.div
       onClick={onClick}
-      className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-600 to-pink-600 
+      className="fixed bottom-4 right-4 z-50 bg-linear-to-r from-purple-600 to-pink-600 
       text-white px-6 py-3 rounded-full cursor-pointer shadow-lg hover:shadow-xl
-      backdrop-blur-sm text-sm sm:text-base font-medium flex items-center gap-2
+      backdrop-blur-xs text-sm sm:text-base font-medium flex items-center gap-2
       border border-white/20"
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}

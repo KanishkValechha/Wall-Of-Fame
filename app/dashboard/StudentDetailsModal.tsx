@@ -263,14 +263,14 @@ export function StudentDetailsModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[100]"
+            className="fixed inset-0 bg-black/50 z-100"
             onClick={onClose}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 flex items-start justify-center z-[101] p-2 sm:p-4 overflow-y-auto"
+            className="fixed inset-0 flex items-start justify-center z-101 p-2 sm:p-4 overflow-y-auto"
           >
             <div className="bg-white rounded-lg shadow-xl p-3 sm:p-6 my-4 sm:my-8 w-full max-w-4xl">
               {isLoading ? (
@@ -298,7 +298,7 @@ export function StudentDetailsModal({
                       value={achievementTitle}
                       onChange={(e) => setAchievementTitle(e.target.value)}
                       placeholder="Add an achievement title"
-                      className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full p-2 border rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -312,7 +312,7 @@ export function StudentDetailsModal({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Add a description"
-                      className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full p-2 border rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                       rows={4}
                     />
                   </div>

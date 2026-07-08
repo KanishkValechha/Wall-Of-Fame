@@ -504,9 +504,9 @@ const refreshData = async () => {
         </div>
 
         {/* Admin toolbar */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0 bg-white p-4 rounded-xl shadow-xs border border-gray-100">
           <div className="flex items-center space-x-2 w-full md:w-auto">
-            <div className="relative flex-grow md:max-w-xs">
+            <div className="relative grow md:max-w-xs">
               <Input
                 placeholder="Search achievements..."
                 value={searchQuery}
@@ -540,7 +540,7 @@ const refreshData = async () => {
                       <span>Filter</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-64 z-[19]">
+                  <DropdownMenuContent align="start" className="w-64 z-19">
                     <div className="p-2">
                       {filters.map(filter => (
                         <div key={filter.id} className="mb-3 last:mb-0">
@@ -550,7 +550,7 @@ const refreshData = async () => {
                           <div className="flex items-center gap-2">
                             <Button
                               size="sm"
-                              variant={filter.active && !filter.negated ? "default" : "outline"} 
+                              variant={filter.active && !filter.negated ? "default" : "outline"}
                               className={cn(
                                 "h-8 px-3 text-xs rounded-md",
                                 filter.active && !filter.negated && "bg-emerald-500 text-white hover:bg-emerald-600"

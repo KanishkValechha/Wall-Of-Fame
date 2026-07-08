@@ -335,18 +335,18 @@ export default function DashboardClient() {
     return (
       <div className="min-h-screen fancy-bg p-2 sm:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white/50 backdrop-blur-sm rounded-lg p-3 sm:p-6 shadow-lg mb-6">
-            <div className="bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm">
+          <div className="bg-white/50 backdrop-blur-xs rounded-lg p-3 sm:p-6 shadow-lg mb-6">
+            <div className="bg-white rounded-2xl shadow-xl p-8 backdrop-blur-xs">
               <div className="flex flex-col items-center gap-8">
                 <div className="relative scale-75">
-                  <div className="absolute -inset-8 rounded-full border border-black/[0.02] animate-[spin_8s_linear_infinite]" />
+                  <div className="absolute -inset-8 rounded-full border border-black/2 animate-[spin_8s_linear_infinite]" />
                   <div className="relative w-24 h-24 flex items-center justify-center">
-                    <div className="absolute inset-0 rounded-full border-2 border-black/[0.03] animate-[spin_4s_linear_infinite]" />
-                    <div className="absolute inset-2 rounded-full border border-black/[0.05] animate-[spin_6s_linear_infinite_reverse]" />
+                    <div className="absolute inset-0 rounded-full border-2 border-black/3 animate-[spin_4s_linear_infinite]" />
+                    <div className="absolute inset-2 rounded-full border border-black/5 animate-[spin_6s_linear_infinite_reverse]" />
                     <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-black/20 animate-[spin_2s_cubic-bezier(0.4,0,0.2,1)_infinite]" />
                     <div className="absolute inset-4 rounded-full border-2 border-transparent border-t-black/20 animate-[spin_2.5s_cubic-bezier(0.4,0,0.2,1)_infinite_reverse]" />
-                    <div className="absolute inset-6 rounded-full border border-black/[0.02] animate-[spin_3s_linear_infinite]" />
-                    <div className="absolute inset-8 rounded-full border border-black/[0.02] animate-[spin_5s_linear_infinite_reverse]" />
+                    <div className="absolute inset-6 rounded-full border border-black/2 animate-[spin_3s_linear_infinite]" />
+                    <div className="absolute inset-8 rounded-full border border-black/2 animate-[spin_5s_linear_infinite_reverse]" />
                     <div className="relative w-1.5 h-1.5">
                       <div className="absolute inset-0 rounded-full bg-black/40 animate-ping" />
                       <div className="relative w-1.5 h-1.5 rounded-full bg-black/80" />
@@ -381,7 +381,7 @@ export default function DashboardClient() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/50 backdrop-blur-sm rounded-lg p-3 sm:p-6 shadow-lg mb-6"
+          className="bg-white/50 backdrop-blur-xs rounded-lg p-3 sm:p-6 shadow-lg mb-6"
         >
           <h1 className="text-2xl sm:text-3xl font-display mb-4 sm:mb-6">
             Professor Dashboard
@@ -459,7 +459,7 @@ export default function DashboardClient() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white/30 backdrop-blur-sm divide-y divide-gray-200">
+                <tbody className="bg-white/30 backdrop-blur-xs divide-y divide-gray-200">
                   <AnimatePresence>
                     {filteredSubmissions.map((submission) => (
                       <motion.tr
@@ -598,7 +598,7 @@ export default function DashboardClient() {
       </div>
 
       {error && (
-        <div className="fixed inset-0 flex items-center justify-center z-[101] p-4">
+        <div className="fixed inset-0 flex items-center justify-center z-101 p-4">
           <div className="bg-white rounded-lg shadow-xl p-6 max-h-[90vh] overflow-y-auto w-full max-w-4xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-display">Error</h2>
@@ -616,7 +616,7 @@ export default function DashboardClient() {
       )}
 
       {successMessage && (
-        <div className="fixed inset-0 flex items-center justify-center z-[101] p-4">
+        <div className="fixed inset-0 flex items-center justify-center z-101 p-4">
           <div className="bg-green-100 rounded-lg shadow-xl p-6 max-h-[90vh] overflow-y-auto w-full max-w-4xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-display text-green-800">Success</h2>
@@ -635,26 +635,26 @@ export default function DashboardClient() {
 
       {isStudentLoading && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-[280px] backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-[280px] backdrop-blur-xs">
             <div className="flex flex-col items-center gap-8">
               {/* Loading animation container - scaled down */}
               <div className="relative scale-75">
                 {/* Outer decorative ring with rotation */}
-                <div className="absolute -inset-8 rounded-full border border-black/[0.02] animate-[spin_8s_linear_infinite]" />
+                <div className="absolute -inset-8 rounded-full border border-black/2 animate-[spin_8s_linear_infinite]" />
 
                 {/* Main spinner group */}
                 <div className="relative w-24 h-24 flex items-center justify-center">
                   {/* Background rings with animations */}
-                  <div className="absolute inset-0 rounded-full border-2 border-black/[0.03] animate-[spin_4s_linear_infinite]" />
-                  <div className="absolute inset-2 rounded-full border border-black/[0.05] animate-[spin_6s_linear_infinite_reverse]" />
+                  <div className="absolute inset-0 rounded-full border-2 border-black/3 animate-[spin_4s_linear_infinite]" />
+                  <div className="absolute inset-2 rounded-full border border-black/5 animate-[spin_6s_linear_infinite_reverse]" />
 
                   {/* Spinning elements */}
                   <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-black/20 animate-[spin_2s_cubic-bezier(0.4,0,0.2,1)_infinite]" />
                   <div className="absolute inset-4 rounded-full border-2 border-transparent border-t-black/20 animate-[spin_2.5s_cubic-bezier(0.4,0,0.2,1)_infinite_reverse]" />
 
                   {/* Additional rotating rings */}
-                  <div className="absolute inset-6 rounded-full border border-black/[0.02] animate-[spin_3s_linear_infinite]" />
-                  <div className="absolute inset-8 rounded-full border border-black/[0.02] animate-[spin_5s_linear_infinite_reverse]" />
+                  <div className="absolute inset-6 rounded-full border border-black/2 animate-[spin_3s_linear_infinite]" />
+                  <div className="absolute inset-8 rounded-full border border-black/2 animate-[spin_5s_linear_infinite_reverse]" />
 
                   {/* Center dot with pulse */}
                   <div className="relative w-1.5 h-1.5">

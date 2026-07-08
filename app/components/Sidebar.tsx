@@ -32,7 +32,7 @@ function Sidebar({
       <motion.div
         initial={false}
         animate={{ opacity: isCollapsed ? 0 : 0.7 }}
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-10"
+        className="fixed inset-0 bg-black/20 backdrop-blur-xs z-10"
         onClick={() => setIsCollapsed(true)}
         style={{ display: isCollapsed ? "none" : "block" }}
       />

@@ -57,7 +57,7 @@ export default function AdminSidebar({
       {/* Overlay */}
       {!isCollapsed && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+          className="fixed inset-0 bg-black/20 backdrop-blur-xs z-40"
           onClick={() => setIsCollapsed(true)}
         />
       )}
