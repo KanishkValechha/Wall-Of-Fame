@@ -168,11 +168,3 @@ export async function POST(req: NextRequest) {
         await client.close();
     }
 }
-
-// Set larger size limit for the API route
-export const config = {
-    api: {
-        bodyParser: false,
-        sizeLimit: '10mb'
-    }
-};

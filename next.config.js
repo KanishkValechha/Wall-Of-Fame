@@ -1,12 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  experimental: {
-    reactCompiler: true,
-  },
+  ...(process.env.VERCEL ? {} : { output: "standalone" }),
+  reactCompiler: true,
   images: { unoptimized: true },
 };
 
